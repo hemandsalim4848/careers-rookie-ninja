@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import styles from './applications.module.css'
 
@@ -13,7 +13,7 @@ const STATUS_CONFIG = {
   rejected:    { label: 'Rejected',    cls: 'tag-amber'  },
 }
 
-export default function HRApplicationsPage() {
+function ApplicationsContent() {
   const searchParams    = useSearchParams()
   const jobId           = searchParams.get('jobId') ?? ''
   const [apps, setApps] = useState<any[]>([])
@@ -22,7 +22,7 @@ export default function HRApplicationsPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/api/jobs').then(r => r.json()).then(setJobs)
+    fetch('/api/jobs?status=all').then(r => r.json()).then(setJobs)
   }, [])
 
   useEffect(() => {
@@ -41,10 +41,10 @@ export default function HRApplicationsPage() {
   }
 
   async function deleteApplicant(id: string) {
-  if (!confirm('Delete this applicant? This cannot be undone.')) return
-  await fetch(`/api/applications/${id}`, { method: 'DELETE' })
-  setApps(prev => prev.filter(a => a._id !== id))
-}
+    if (!confirm('Delete this applicant? This cannot be undone.')) return
+    await fetch(`/api/applications/${id}`, { method: 'DELETE' })
+    setApps(prev => prev.filter(a => a._id !== id))
+  }
 
   function exportCSV() {
     const url = filter
@@ -74,7 +74,9 @@ export default function HRApplicationsPage() {
             </select>
             <button className="btn-ghost" onClick={exportCSV}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
               </svg>
               Export CSV
             </button>
@@ -99,55 +101,63 @@ export default function HRApplicationsPage() {
             </div>
 
             {apps.map(app => {
-  const cfg = STATUS_CONFIG[app.status as keyof typeof STATUS_CONFIG]
-  return (
-    <div key={app._id} className={styles.tableRow}>
-      <div>
-        <p className={styles.name}>{app.seeker?.name}</p>
-        <p className={styles.email}>{app.seeker?.email}</p>
-        {app.phone && <p className={styles.email}>{app.phone}</p>}
-        {app.linkedIn && (
-          <a href={app.linkedIn} target="_blank" rel="noopener noreferrer" className={styles.linkedIn}>
-            LinkedIn ↗
-          </a>
-        )}
-      </div>
-      <div>
-        <p className={styles.jobTitle}>{app.job?.title}</p>
-        <p className={styles.email}>{app.job?.department}</p>
-      </div>
-      <span className={styles.date}>
-        {new Date(app.createdAt).toLocaleDateString('en-AE', { day: 'numeric', month: 'short', year: 'numeric' })}
-      </span>
-      <a href={app.resumeUrl} target="_blank" rel="noopener noreferrer" className={styles.resumeLink}>
-        View ↗
-      </a>
-      <select
-        className={`${styles.statusSelect} ${styles[app.status]}`}
-        value={app.status}
-        onChange={e => updateStatus(app._id, e.target.value)}
-      >
-        {STATUSES.map(s => (
-          <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>
-        ))}
-      </select>
-      <button
-        className={styles.deleteBtn}
-        onClick={() => deleteApplicant(app._id)}
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="3 6 5 6 21 6"/>
-          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-          <path d="M10 11v6M14 11v6"/>
-          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-        </svg>
-      </button>
-    </div>
-  )
-})}
+              const cfg = STATUS_CONFIG[app.status as keyof typeof STATUS_CONFIG]
+              return (
+                <div key={app._id} className={styles.tableRow}>
+                  <div>
+                    <p className={styles.name}>{app.seeker?.name}</p>
+                    <p className={styles.email}>{app.seeker?.email}</p>
+                    {app.phone && <p className={styles.email}>{app.phone}</p>}
+                    {app.linkedIn && (
+                      <a href={app.linkedIn} target="_blank" rel="noopener noreferrer" className={styles.linkedIn}>
+                        LinkedIn ↗
+                      </a>
+                    )}
+                  </div>
+                  <div>
+                    <p className={styles.jobTitle}>{app.job?.title}</p>
+                    <p className={styles.email}>{app.job?.department}</p>
+                  </div>
+                  <span className={styles.date}>
+                    {new Date(app.createdAt).toLocaleDateString('en-AE', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </span>
+                  <a href={app.resumeUrl} target="_blank" rel="noopener noreferrer" className={styles.resumeLink}>
+                    View ↗
+                  </a>
+                  <select
+                    className={`${styles.statusSelect} ${styles[app.status]}`}
+                    value={app.status}
+                    onChange={e => updateStatus(app._id, e.target.value)}
+                  >
+                    {STATUSES.map(s => (
+                      <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>
+                    ))}
+                  </select>
+                  <button
+                    className={styles.deleteBtn}
+                    onClick={() => deleteApplicant(app._id)}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                      <path d="M10 11v6M14 11v6"/>
+                      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                    </svg>
+                  </button>
+                </div>
+              )
+            })}
           </div>
         )}
       </div>
     </div>
+  )
+}
+
+export default function HRApplicationsPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: 80, textAlign: 'center', color: 'var(--text-muted)' }}>Loading…</div>}>
+      <ApplicationsContent />
+    </Suspense>
   )
 }
