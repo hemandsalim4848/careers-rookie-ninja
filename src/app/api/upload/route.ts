@@ -44,9 +44,11 @@ export async function POST(req: NextRequest) {
     const base64 = `data:${file.type};base64,${buffer.toString('base64')}`
 
     // Upload to Cloudinary
-const result = await cloudinary.uploader.unsigned_upload(base64, 'rookie_ninja_resumes', {
-  resource_type: 'raw',
+const result = await cloudinary.uploader.upload(base64, {
+  folder:        'rookie-ninja/resumes',
+  resource_type: 'image',
   public_id:     filename,
+  format:        'pdf',
 })
 
 const url = result.secure_url
