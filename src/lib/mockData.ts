@@ -183,6 +183,6 @@ export const MOCK_JOBS: Job[] = [
   },
 ]
 
-export const DEPARTMENTS = [...new Set(MOCK_JOBS.map(j => j.department))]
-export const LOCATIONS   = [...new Set(MOCK_JOBS.map(j => j.location))]
+export const DEPARTMENTS = Array.from(new Set(MOCK_JOBS.map(j => j.department)))
+export const LOCATIONS   = Array.from(new Set(MOCK_JOBS.map(j => j.location)))
 export const JOB_TYPES   = ['Full-time', 'Part-time', 'Contract', 'Internship'] as const
