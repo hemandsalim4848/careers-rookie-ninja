@@ -46,13 +46,18 @@ export async function POST(req: NextRequest) {
     // Upload to Cloudinary
 const result = await cloudinary.uploader.upload(base64, {
   folder:        'rookie-ninja/resumes',
-  resource_type: 'image',
+  resource_type: 'raw',
   public_id:     filename,
-  format:        'pdf',
 })
 
-const url = result.secure_url
-    console.log('Cloudinary upload success:', url)
+// Convert raw URL to a viewable PDF URL using Cloudinary's fl_attachment:false
+const rawUrl = result.secure_url
+// Replace /raw/upload/ with /image/upload/fl_inline/ for inline viewing
+const url = rawUrl
+  .replace('/raw/upload/', '/image/upload/')
+  .replace('.pdf', '.pdf')
+
+console.log('Upload URL:', url)
 
     // Save to user profile
     await connectDB()

@@ -159,7 +159,7 @@ function handleModalSkip() {
                         </svg>
                         <span>Current resume</span>
                         <a 
-    href={profile.resumeUrl}
+    href={`/api/resume?url=${encodeURIComponent(profile.resumeUrl)}`}
   target="_blank"
   rel="noopener noreferrer"
   className={styles.viewLink}

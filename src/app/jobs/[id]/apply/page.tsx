@@ -105,9 +105,9 @@ export default function ApplyPage() {
                   </svg>
                   <span>Resume on file</span>
                   <a 
-  href={`https://docs.google.com/viewer?url=${encodeURIComponent(profile.resumeUrl)}&embedded=true`}
-  target="_blank" 
-  rel="noopener noreferrer" 
+  href={`/api/resume?url=${encodeURIComponent(profile.resumeUrl)}`}
+  target="_blank"
+  rel="noopener noreferrer"
   className={styles.viewLink}
 >
   View ↗
