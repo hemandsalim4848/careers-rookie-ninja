@@ -158,12 +158,7 @@ function handleModalSkip() {
                           <polyline points="14 2 14 8 20 8"/>
                         </svg>
                         <span>Current resume</span>
-                        <a 
-    href={`/api/resume?url=${encodeURIComponent(profile.resumeUrl)}`}
-  target="_blank"
-  rel="noopener noreferrer"
-  className={styles.viewLink}
->
+                        <a href={profile.resumeUrl} target="_blank" rel="noopener noreferrer" className={styles.viewLink}>
   View ↗
 </a>
                       </div>

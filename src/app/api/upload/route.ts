@@ -1,15 +1,11 @@
+export const dynamic = 'force-dynamic'
+
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { connectDB } from '@/lib/mongodb'
 import User from '@/models/User'
-import { v2 as cloudinary } from 'cloudinary'
-
-cloudinary.config({
-  cloud_name:  process.env.CLOUDINARY_CLOUD_NAME!,
-  api_key:     process.env.CLOUDINARY_API_KEY!,
-  api_secret:  process.env.CLOUDINARY_API_SECRET!,
-})
+import { put } from '@vercel/blob'
 
 export async function POST(req: NextRequest) {
   try {
@@ -37,33 +33,21 @@ export async function POST(req: NextRequest) {
     }
 
     const ext = file.name.split('.').pop()?.toLowerCase() ?? 'pdf'
-    const filename = `resume_${userId}_${Date.now()}.${ext}`
+    const filename = `resumes/resume_${userId}_${Date.now()}.${ext}`
 
-    // Convert to base64
-    const buffer = Buffer.from(await file.arrayBuffer())
-    const base64 = `data:${file.type};base64,${buffer.toString('base64')}`
+    // Upload to Vercel Blob
+    const blob = await put(filename, file, {
+      access: 'public',
+      contentType: file.type,
+    })
 
-    // Upload to Cloudinary
-const result = await cloudinary.uploader.upload(base64, {
-  folder:        'rookie-ninja/resumes',
-  resource_type: 'raw',
-  public_id:     filename,
-})
-
-// Convert raw URL to a viewable PDF URL using Cloudinary's fl_attachment:false
-const rawUrl = result.secure_url
-// Replace /raw/upload/ with /image/upload/fl_inline/ for inline viewing
-const url = rawUrl
-  .replace('/raw/upload/', '/image/upload/')
-  .replace('.pdf', '.pdf')
-
-console.log('Upload URL:', url)
+    console.log('Blob upload success:', blob.url)
 
     // Save to user profile
     await connectDB()
-    await User.findByIdAndUpdate(userId, { resumeUrl: url }, { new: true })
+    await User.findByIdAndUpdate(userId, { resumeUrl: blob.url }, { new: true })
 
-    return NextResponse.json({ url })
+    return NextResponse.json({ url: blob.url })
   } catch (err: any) {
     console.error('Upload error:', err.message)
     return NextResponse.json({ error: err.message }, { status: 500 })

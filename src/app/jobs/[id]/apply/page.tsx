@@ -104,12 +104,7 @@ export default function ApplyPage() {
                     <polyline points="14 2 14 8 20 8"/>
                   </svg>
                   <span>Resume on file</span>
-                  <a 
-  href={`/api/resume?url=${encodeURIComponent(profile.resumeUrl)}`}
-  target="_blank"
-  rel="noopener noreferrer"
-  className={styles.viewLink}
->
+                  <a href={profile.resumeUrl} target="_blank" rel="noopener noreferrer" className={styles.viewLink}>
   View ↗
 </a>
                   <Link href="/dashboard/seeker" className={styles.updateLink}>
