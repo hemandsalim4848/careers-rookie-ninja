@@ -36,7 +36,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'File must be under 5MB.' }, { status: 400 })
     }
 
-    // Convert file to base64
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'pdf'
+    const filename = `resume_${userId}_${Date.now()}.${ext}`
+
+    // Convert to base64
     const buffer = Buffer.from(await file.arrayBuffer())
     const base64 = `data:${file.type};base64,${buffer.toString('base64')}`
 
@@ -44,10 +47,12 @@ export async function POST(req: NextRequest) {
     const result = await cloudinary.uploader.upload(base64, {
       folder:        'rookie-ninja/resumes',
       resource_type: 'raw',
-      public_id:     `resume_${userId}_${Date.now()}`,
+      public_id:     filename,
+      type:          'upload',
     })
 
-    const url = result.secure_url
+    // fl_inline makes the file open in browser instead of downloading
+    const url = result.secure_url.replace('/raw/upload/', '/raw/upload/fl_inline/')
     console.log('Cloudinary upload success:', url)
 
     // Save to user profile
