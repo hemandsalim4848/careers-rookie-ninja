@@ -17,7 +17,7 @@ export default function JobsPage() {
     fetch('/api/jobs').then(r => r.json()).then(setJobs)
   }, [])
 
-  const departments = [...new Set(jobs.map(j => j.department))]
+  const departments = Array.from(new Set(jobs.map((j: any) => j.department)))
 
   const filtered = useMemo(() => {
     return jobs.filter(job => {
