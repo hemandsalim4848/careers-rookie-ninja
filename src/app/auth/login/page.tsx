@@ -1,12 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import styles from '../auth.module.css'
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
   const params = useSearchParams()
   const redirect = params.get('redirect') || '/'
@@ -37,59 +37,67 @@ export default function LoginPage() {
   }
 
   return (
-    <div className={styles.page}>
-      <div className={styles.card}>
-        <div className={styles.cardHeader}>
-          <Link href="/" className={styles.logoMark}>RN</Link>
-          <h1 className={styles.heading}>Welcome back</h1>
-          <p className={styles.sub}>Sign in to your account</p>
+    <div className={styles.card}>
+      <div className={styles.cardHeader}>
+        <Link href="/" className={styles.logoMark}>RN</Link>
+        <h1 className={styles.heading}>Welcome back</h1>
+        <p className={styles.sub}>Sign in to your account</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className={styles.form}>
+        <div className={styles.field}>
+          <label htmlFor="email" className={styles.label}>Email</label>
+          <input
+            id="email"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            placeholder="you@example.com"
+          />
         </div>
 
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.field}>
-            <label htmlFor="email" className={styles.label}>Email</label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="you@example.com"
-            />
-          </div>
+        <div className={styles.field}>
+          <label htmlFor="password" className={styles.label}>Password</label>
+          <input
+            id="password"
+            type="password"
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            placeholder="••••••••"
+          />
+        </div>
 
-          <div className={styles.field}>
-            <label htmlFor="password" className={styles.label}>Password</label>
-            <input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="••••••••"
-            />
-          </div>
+        {error && <p className={styles.error}>{error}</p>}
 
-          {error && <p className={styles.error}>{error}</p>}
+        <button
+          type="submit"
+          className={`btn-primary ${styles.submitBtn}`}
+          disabled={loading}
+        >
+          {loading ? 'Signing in…' : 'Sign in'}
+        </button>
+      </form>
 
-          <button
-            type="submit"
-            className={`btn-primary ${styles.submitBtn}`}
-            disabled={loading}
-          >
-            {loading ? 'Signing in…' : 'Sign in'}
-          </button>
-        </form>
+      <p className={styles.switchText}>
+        Don't have an account?{' '}
+        <Link href="/auth/register" className={styles.switchLink}>
+          Create one
+        </Link>
+      </p>
+    </div>
+  )
+}
 
-        <p className={styles.switchText}>
-          Don't have an account?{' '}
-          <Link href="/auth/register" className={styles.switchLink}>
-            Create one
-          </Link>
-        </p>
-      </div>
+export default function LoginPage() {
+  return (
+    <div className={styles.page}>
+      <Suspense fallback={<div className={styles.card} />}>
+        <LoginForm />
+      </Suspense>
     </div>
   )
 }
