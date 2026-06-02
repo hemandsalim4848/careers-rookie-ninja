@@ -44,15 +44,14 @@ export async function POST(req: NextRequest) {
     const base64 = `data:${file.type};base64,${buffer.toString('base64')}`
 
     // Upload to Cloudinary
-    const result = await cloudinary.uploader.upload(base64, {
-      folder:        'rookie-ninja/resumes',
-      resource_type: 'raw',
-      public_id:     filename,
-      type:          'upload',
-    })
+const result = await cloudinary.uploader.upload(base64, {
+  folder:        'rookie-ninja/resumes',
+  resource_type: 'auto',
+  public_id:     filename,
+  type:          'upload',
+})
 
-    // fl_inline makes the file open in browser instead of downloading
-    const url = result.secure_url.replace('/raw/upload/', '/raw/upload/fl_inline/')
+const url = result.secure_url
     console.log('Cloudinary upload success:', url)
 
     // Save to user profile

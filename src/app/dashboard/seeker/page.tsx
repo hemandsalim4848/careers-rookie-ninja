@@ -147,9 +147,14 @@ function handleModalSkip() {
                           <polyline points="14 2 14 8 20 8"/>
                         </svg>
                         <span>Current resume</span>
-                        <a href={profile.resumeUrl} target="_blank" rel="noopener noreferrer" className={styles.viewLink}>
-                          View ↗
-                        </a>
+                        <a 
+  href={`https://docs.google.com/viewer?url=${encodeURIComponent(profile.resumeUrl)}&embedded=true`}
+  target="_blank" 
+  rel="noopener noreferrer" 
+  className={styles.viewLink}
+>
+  View ↗
+</a>
                       </div>
 
                       {/* Update resume */}

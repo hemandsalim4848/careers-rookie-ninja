@@ -121,9 +121,14 @@ function ApplicationsContent() {
                   <span className={styles.date}>
                     {new Date(app.createdAt).toLocaleDateString('en-AE', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </span>
-                  <a href={app.resumeUrl} target="_blank" rel="noopener noreferrer" className={styles.resumeLink}>
-                    View ↗
-                  </a>
+                  <a 
+  href={`https://docs.google.com/viewer?url=${encodeURIComponent(app.resumeUrl)}&embedded=true`}
+  target="_blank" 
+  rel="noopener noreferrer" 
+  className={styles.resumeLink}
+>
+  View ↗
+</a>
                   <select
                     className={`${styles.statusSelect} ${styles[app.status]}`}
                     value={app.status}
