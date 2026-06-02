@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import ResumeSetupModal from '@/components/ResumeSetupModal'
 import styles from './seeker.module.css'
 
@@ -15,6 +16,7 @@ const STATUS_CONFIG = {
 
 export default function SeekerDashboard() {
   const { data: session } = useSession()
+  const router = useRouter()
 
   const [applications, setApplications] = useState<any[]>([])
   const [profile, setProfile]           = useState<any>(null)
@@ -25,17 +27,26 @@ export default function SeekerDashboard() {
   const [resumeError, setResumeError]   = useState('')
   const [resumeSuccess, setResumeSuccess] = useState(false)
 
+  
+    useEffect(() => {
+    if (session && (session.user as any)?.role === 'hr') {
+      router.push('/dashboard/hr')
+    }
+  }, [session])
+
 useEffect(() => {
+  if (!session) return
+  const isHR = (session.user as any)?.role === 'hr'
+
   fetch('/api/profile')
     .then(r => r.json())
     .then(prof => {
       setProfile(prof)
-      // Show modal only if no resume
-      if (!prof.resumeUrl) {
+      // Never show resume modal for HR
+      if (!prof.resumeUrl && !isHR) {
         setShowModal(true)
         setLoading(false)
       } else {
-        // Only fetch applications if profile is loaded and has resume
         fetch('/api/applications')
           .then(r => r.json())
           .then(apps => {
@@ -46,7 +57,7 @@ useEffect(() => {
       }
     })
     .catch(() => setLoading(false))
-}, [])
+}, [session])
 
 function handleModalComplete(url: string) {
   setProfile((p: any) => ({ ...p, resumeUrl: url }))
@@ -148,9 +159,9 @@ function handleModalSkip() {
                         </svg>
                         <span>Current resume</span>
                         <a 
-  href={`https://docs.google.com/viewer?url=${encodeURIComponent(profile.resumeUrl)}&embedded=true`}
-  target="_blank" 
-  rel="noopener noreferrer" 
+    href={profile.resumeUrl}
+  target="_blank"
+  rel="noopener noreferrer"
   className={styles.viewLink}
 >
   View ↗
