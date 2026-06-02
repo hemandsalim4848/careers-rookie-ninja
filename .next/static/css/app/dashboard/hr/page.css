@@ -1,0 +1,100 @@
+/*!******************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[7].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[7].use[3]!./src/app/dashboard/hr/hr.module.css ***!
+  \******************************************************************************************************************************************************************************************************************************************************************************/
+.hr_page__djQux { padding: 48px 0 80px; }
+
+.hr_header__5hPkp {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 36px;
+  flex-wrap: wrap;
+}
+
+.hr_heading__az_nP {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+
+.hr_sub__CSPUi { font-size: 14px; color: var(--text-muted); }
+
+.hr_stats__r4gkF {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-gap: 12px;
+  gap: 12px;
+  margin-bottom: 36px;
+}
+
+.hr_statCard__MPhp1 {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hr_statNum__B7fw1 {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.hr_quickLinks__DU_No {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 14px;
+  gap: 14px;
+}
+
+.hr_quickCard__7jQAo {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  text-decoration: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.hr_quickCard__7jQAo:hover {
+  border-color: var(--border-hover);
+  background: var(--bg-3);
+}
+
+.hr_quickIcon__1mEST {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: var(--accent-dim);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.hr_quickTitle__EfpbL {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 3px;
+}
+
+.hr_quickSub__ztXpO { font-size: 13px; color: var(--text-muted); }
+
+@media (max-width: 700px) {
+  .hr_stats__r4gkF { grid-template-columns: repeat(2, 1fr); }
+  .hr_quickLinks__DU_No { grid-template-columns: 1fr; }
+}

@@ -1,0 +1,177 @@
+/*!************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[7].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[7].use[3]!./src/app/auth/auth.module.css ***!
+  \************************************************************************************************************************************************************************************************************************************************************************/
+.auth_page__Y5bx6 {
+  min-height: calc(100vh - 64px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background: var(--bg);
+  position: relative;
+}
+
+.auth_page__Y5bx6::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 500px;
+  height: 300px;
+  background: radial-gradient(ellipse, rgba(21,167,220,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.auth_card__3UHkg {
+  width: 100%;
+  max-width: 420px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 40px;
+  animation: auth_fadeUp__2wLZj 0.4s ease both;
+}
+
+.auth_cardHeader__v_0Wi {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.auth_logoMark__q3OC8 {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 14px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+  text-decoration: none;
+}
+
+.auth_heading__oEuCs {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+  letter-spacing: -0.02em;
+}
+
+.auth_sub__iaerr {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+/* Role toggle */
+.auth_roleToggle__YlPUe {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 8px;
+  gap: 8px;
+  margin-bottom: 24px;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 4px;
+}
+
+.auth_roleBtn__mAkmF {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px 12px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  transition: color 0.15s, background 0.15s;
+}
+
+.auth_roleBtn__mAkmF:hover {
+  color: var(--text-secondary);
+}
+
+.auth_roleBtnActive__cY6Bx {
+  background: var(--bg-card) !important;
+  color: var(--accent) !important;
+  border: 1px solid var(--border-hover);
+}
+
+/* Form */
+.auth_form__FcSZa {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.auth_field__JIFju {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.auth_label__642y9 {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.auth_error__WpX77 {
+  font-size: 13px;
+  color: #F87171;
+  background: rgba(248, 113, 113, 0.08);
+  border: 1px solid rgba(248, 113, 113, 0.2);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+}
+
+.auth_submitBtn__3naoD {
+  width: 100%;
+  justify-content: center;
+  padding: 12px 20px;
+  border-radius: var(--radius-lg);
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.auth_submitBtn__3naoD:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth_switchText__gRb_k {
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.auth_switchLink__jc_3v {
+  color: var(--accent);
+  transition: opacity 0.15s;
+}
+
+.auth_switchLink__jc_3v:hover { opacity: 0.8; }
+
+@media (max-width: 480px) {
+  .auth_card__3UHkg {
+    padding: 28px 20px;
+  }
+
+  .auth_heading__oEuCs {
+    font-size: 20px;
+  }
+
+  .auth_roleToggle__YlPUe {
+    grid-template-columns: 1fr;
+  }
+}
