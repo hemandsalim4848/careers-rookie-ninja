@@ -3,9 +3,13 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { connectDB } from '@/lib/mongodb'
 import User from '@/models/User'
-import { writeFile, mkdir } from 'fs/promises'
-import { join } from 'path'
-import { randomUUID } from 'crypto'
+import { v2 as cloudinary } from 'cloudinary'
+
+cloudinary.config({
+  cloud_name:  process.env.CLOUDINARY_CLOUD_NAME!,
+  api_key:     process.env.CLOUDINARY_API_KEY!,
+  api_secret:  process.env.CLOUDINARY_API_SECRET!,
+})
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,7 +17,6 @@ export async function POST(req: NextRequest) {
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const userId = (session.user as any).id
-    console.log('Upload - session user id:', userId)
 
     const formData = await req.formData()
     const file = formData.get('file') as File | null
@@ -33,30 +36,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'File must be under 5MB.' }, { status: 400 })
     }
 
-    const ext = file.name.split('.').pop()
-    const filename = `${randomUUID()}.${ext}`
+    // Convert file to base64
+    const buffer = Buffer.from(await file.arrayBuffer())
+    const base64 = `data:${file.type};base64,${buffer.toString('base64')}`
 
-    const uploadDir = join(process.cwd(), 'public', 'uploads', 'resumes')
-    await mkdir(uploadDir, { recursive: true })
-    await writeFile(join(uploadDir, filename), Buffer.from(await file.arrayBuffer()))
+    // Upload to Cloudinary
+    const result = await cloudinary.uploader.upload(base64, {
+      folder:        'rookie-ninja/resumes',
+      resource_type: 'raw',
+      public_id:     `resume_${userId}_${Date.now()}`,
+    })
 
-    const url = `/uploads/resumes/${filename}`
-    console.log('File saved at:', url)
+    const url = result.secure_url
+    console.log('Cloudinary upload success:', url)
 
+    // Save to user profile
     await connectDB()
-    console.log('Looking for user with id:', userId)
-const userCheck = await User.findById(userId).lean()
-console.log('User found before update:', userCheck ? 'yes' : 'no')
-    const updated = await User.findByIdAndUpdate(
-      userId,
-      { resumeUrl: url },
-      { new: true }
-    )
-    console.log('User after update:', updated?._id, 'resumeUrl:', updated?.resumeUrl)
-
-    if (!updated) {
-      return NextResponse.json({ error: 'User not found in DB.' }, { status: 404 })
-    }
+    await User.findByIdAndUpdate(userId, { resumeUrl: url }, { new: true })
 
     return NextResponse.json({ url })
   } catch (err: any) {
