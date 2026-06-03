@@ -136,7 +136,7 @@ export async function notifyApplicantConfirmation({
   try {
     await transporter.sendMail({
       from:    `"Rookie Ninja Careers" <onboarding@resend.dev>`,
-      to:      process.env.NODE_ENV === 'production' ? to : process.env.HR_EMAIL!,
+      to: process.env.RESEND_VERIFIED_DOMAIN === 'true' ? to : process.env.HR_EMAIL!,
       subject: `Application received — ${jobTitle}`,
       html: `
         <div style="font-family:sans-serif;max-width:520px;margin:auto;background:#0D1520;color:#EDF2F7;padding:32px;border-radius:12px">
