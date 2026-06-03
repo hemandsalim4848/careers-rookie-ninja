@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { connectDB } from '@/lib/mongodb'
 import Application from '@/models/Application'
+import Job from '@/models/Job'
+import User from '@/models/User'
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions)
@@ -20,19 +22,23 @@ export async function GET(req: NextRequest) {
     .populate('job', 'title department')
     .lean()
 
+  if (applications.length === 0) {
+    return new NextResponse('No applications found', { status: 404 })
+  }
+
   const rows = applications.map((a: any) => ({
-    Name:        a.seeker?.name ?? '',
-    Email:       a.seeker?.email ?? '',
-    Job:         a.job?.title ?? '',
-    Department:  a.job?.department ?? '',
-    Phone:       a.phone,
-    LinkedIn:    a.linkedIn ?? '',
-    Status:      a.status,
-    Applied:     new Date(a.createdAt).toLocaleDateString(),
-    Resume:      a.resumeUrl,
+    Name:       a.seeker?.name       ?? '',
+    Email:      a.seeker?.email      ?? '',
+    Job:        a.job?.title         ?? '',
+    Department: a.job?.department    ?? '',
+    Phone:      a.phone              ?? '',
+    LinkedIn:   a.linkedIn           ?? '',
+    Status:     a.status,
+    Applied:    new Date(a.createdAt).toLocaleDateString('en-AE'),
+    Resume:     a.resumeUrl,
   }))
 
-  const headers = Object.keys(rows[0] ?? {})
+  const headers = Object.keys(rows[0])
   const csv = [
     headers.join(','),
     ...rows.map(row =>
@@ -42,7 +48,7 @@ export async function GET(req: NextRequest) {
 
   return new NextResponse(csv, {
     headers: {
-      'Content-Type': 'text/csv',
+      'Content-Type':        'text/csv',
       'Content-Disposition': `attachment; filename="applicants-${jobId ?? 'all'}.csv"`,
     },
   })
