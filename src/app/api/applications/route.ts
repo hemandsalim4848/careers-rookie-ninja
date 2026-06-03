@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { connectDB } from '@/lib/mongodb'
 import Application from '@/models/Application'
 import { notifyHR } from '@/lib/mailer'
+import { rateLimiters, getIP } from '@/lib/ratelimit'
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions)
@@ -35,22 +36,26 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    console.log('Session:', session)
-
     if (!session || (session.user as any).role !== 'seeker') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Rate limit by user ID
+    const userId = (session.user as any).id
+    const { success } = await rateLimiters.applications.limit(userId)
+
+    if (!success) {
+      return NextResponse.json(
+        { error: 'You are applying too fast. Please wait before submitting another application.' },
+        { status: 429 }
+      )
+    }
+
     await connectDB()
-    console.log('DB connected')
-
     const body = await req.json()
-    console.log('Application body:', body)
-
     const seekerId = (session.user as any).id
 
     const application = await Application.create({ ...body, seeker: seekerId })
-    console.log('Application created:', application._id)
 
     notifyHR({
       applicantName:  session.user?.name ?? 'Someone',
@@ -60,8 +65,10 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(application, { status: 201 })
   } catch (err: any) {
+    if (err.code === 11000) {
+      return NextResponse.json({ error: 'You have already applied for this job.' }, { status: 409 })
+    }
     console.error('Application error:', err.message)
-    console.error(err.stack)
     return NextResponse.json({ error: err.message }, { status: 500 })
   }
 }

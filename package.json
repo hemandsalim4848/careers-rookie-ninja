@@ -13,6 +13,8 @@
     "@aws-sdk/client-s3": "^3.624.0",
     "@aws-sdk/s3-request-presigner": "^3.624.0",
     "@hookform/resolvers": "^3.9.0",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.38.0",
     "@vercel/blob": "^2.4.0",
     "bcryptjs": "^2.4.3",
     "json2csv": "^6.0.0-alpha.2",

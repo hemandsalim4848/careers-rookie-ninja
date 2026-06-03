@@ -2,9 +2,27 @@ import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { connectDB } from '@/lib/mongodb'
 import User from '@/models/User'
+import { rateLimiters, getIP } from '@/lib/ratelimit'
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit by IP
+    const ip = getIP(req)
+    const { success, limit, remaining } = await rateLimiters.auth.limit(ip)
+
+    if (!success) {
+      return NextResponse.json(
+        { error: 'Too many attempts. Please try again in 10 minutes.' },
+        {
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit':     limit.toString(),
+            'X-RateLimit-Remaining': remaining.toString(),
+          },
+        }
+      )
+    }
+
     const { name, email, password } = await req.json()
 
     if (!name || !email || !password) {
@@ -23,8 +41,6 @@ export async function POST(req: NextRequest) {
     }
 
     const hashed = await bcrypt.hash(password, 12)
-
-    // Role is always seeker from public register — HR accounts are created by admin only
     await User.create({ name, email: email.toLowerCase(), password: hashed, role: 'seeker' })
 
     return NextResponse.json({ success: true }, { status: 201 })

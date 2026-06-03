@@ -6,6 +6,7 @@ import { authOptions } from '@/lib/auth'
 import { connectDB } from '@/lib/mongodb'
 import User from '@/models/User'
 import { put } from '@vercel/blob'
+import { rateLimiters } from '@/lib/ratelimit'
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,6 +14,15 @@ export async function POST(req: NextRequest) {
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const userId = (session.user as any).id
+
+    // Rate limit — 5 uploads per hour per user
+    const { success } = await rateLimiters.api.limit(userId)
+    if (!success) {
+      return NextResponse.json(
+        { error: 'Too many uploads. Please try again later.' },
+        { status: 429 }
+      )
+    }
 
     const formData = await req.formData()
     const file = formData.get('file') as File | null
