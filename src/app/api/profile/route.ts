@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { connectDB } from '@/lib/mongodb'
 import User from '@/models/User'
+import { sanitizeText } from '@/lib/sanitize'
 
 export async function GET() {
   const session = await getServerSession(authOptions)
@@ -31,9 +32,10 @@ export async function PATCH(req: NextRequest) {
 
   const allowed = ['phone', 'linkedIn', 'resumeUrl', 'name']
   const update: Record<string, any> = {}
-  for (const key of allowed) {
-    if (body[key] !== undefined) update[key] = body[key]
-  }
+// Inside PATCH, update the update object building:
+for (const key of allowed) {
+  if (body[key] !== undefined) update[key] = sanitizeText(body[key])
+}
 
   console.log('Updating with:', update)
 

@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { connectDB } from '@/lib/mongodb'
 import Job from '@/models/Job'
+import { sanitizeText, sanitizeRichText } from '@/lib/sanitize'
 
 // GET — public, returns all open jobs
 export async function GET(req: NextRequest) {
@@ -27,6 +28,17 @@ export async function POST(req: NextRequest) {
   await connectDB()
   const body = await req.json()
 
-  const job = await Job.create({ ...body, postedBy: (session.user as any).id })
+  const sanitizedBody = {
+    ...body,
+    title:            sanitizeText(body.title ?? ''),
+    department:       sanitizeText(body.department ?? ''),
+    location:         sanitizeText(body.location ?? ''),
+    description:      sanitizeRichText(body.description ?? ''),
+    responsibilities: (body.responsibilities ?? []).map((r: string) => sanitizeText(r)),
+    requirements:     (body.requirements ?? []).map((r: string) => sanitizeText(r)),
+    niceToHave:       (body.niceToHave ?? []).map((r: string) => sanitizeText(r)),
+  }
+
+  const job = await Job.create({ ...sanitizedBody, postedBy: (session.user as any).id })
   return NextResponse.json(job, { status: 201 })
 }
