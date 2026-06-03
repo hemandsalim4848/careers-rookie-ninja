@@ -3,10 +3,10 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { connectDB } from '@/lib/mongodb'
 import Application from '@/models/Application'
+import { notifyHR } from '@/lib/mailer'
 import { rateLimiters, getIP } from '@/lib/ratelimit'
 import { sanitizeText } from '@/lib/sanitize'
-import { notifyHR, notifyApplicantConfirmation } from '@/lib/mailer'
-import Job from '@/models/Job'
+
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions)
@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Rate limit by user ID
     const userId = (session.user as any).id
     const { success } = await rateLimiters.applications.limit(userId)
 
@@ -56,31 +57,20 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const seekerId = (session.user as any).id
 
-    const sanitizedBody = {
-      ...body,
-      coverLetter: sanitizeText(body.coverLetter ?? ''),
-      phone:       sanitizeText(body.phone ?? ''),
-      linkedIn:    sanitizeText(body.linkedIn ?? ''),
-    }
+  // Sanitize user inputs
+const sanitizedBody = {
+  ...body,
+  coverLetter: sanitizeText(body.coverLetter ?? ''),
+  phone:       sanitizeText(body.phone ?? ''),
+  linkedIn:    sanitizeText(body.linkedIn ?? ''),
+}
 
-    const application = await Application.create({ ...sanitizedBody, seeker: seekerId })
+const application = await Application.create({ ...sanitizedBody, seeker: seekerId })
 
-    // Fetch job details for email
-    const job = await Job.findById(body.job).lean() as any
-
-    // Notify HR
     notifyHR({
       applicantName:  session.user?.name ?? 'Someone',
       applicantEmail: session.user?.email ?? '',
       jobId:          body.job,
-    }).catch(console.error)
-
-    // Confirm to seeker
-    notifyApplicantConfirmation({
-      to:         session.user?.email ?? '',
-      name:       session.user?.name  ?? 'there',
-      jobTitle:   job?.title          ?? 'the role',
-      department: job?.department     ?? '',
     }).catch(console.error)
 
     return NextResponse.json(application, { status: 201 })
