@@ -13,13 +13,16 @@ const STATUS_CONFIG = {
   rejected:    { label: 'Rejected',    cls: 'tag-amber'  },
 }
 
+const PAGE_SIZE = 5
+
 function ApplicationsContent() {
-  const searchParams    = useSearchParams()
-  const jobId           = searchParams.get('jobId') ?? ''
-  const [apps, setApps] = useState<any[]>([])
-  const [jobs, setJobs] = useState<any[]>([])
+  const searchParams        = useSearchParams()
+  const jobId               = searchParams.get('jobId') ?? ''
+  const [apps, setApps]     = useState<any[]>([])
+  const [jobs, setJobs]     = useState<any[]>([])
   const [filter, setFilter] = useState(jobId)
   const [loading, setLoading] = useState(true)
+  const [page, setPage]     = useState(1)
 
   useEffect(() => {
     fetch('/api/jobs?status=all').then(r => r.json()).then(setJobs)
@@ -28,6 +31,7 @@ function ApplicationsContent() {
   useEffect(() => {
     const url = filter ? `/api/applications?jobId=${filter}` : '/api/applications'
     setLoading(true)
+    setPage(1) // reset to first page on filter change
     fetch(url).then(r => r.json()).then(data => { setApps(data); setLoading(false) })
   }, [filter])
 
@@ -52,6 +56,10 @@ function ApplicationsContent() {
       : '/api/applications/export'
     window.open(url, '_blank')
   }
+
+  // Pagination calculations
+  const totalPages  = Math.ceil(apps.length / PAGE_SIZE)
+  const paginated   = apps.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   return (
     <div className={styles.page}>
@@ -90,64 +98,109 @@ function ApplicationsContent() {
             <p className={styles.emptyTitle}>No applications yet</p>
           </div>
         ) : (
-          <div className={styles.table}>
-            <div className={styles.tableHead}>
-              <span>Applicant</span>
-              <span>Role</span>
-              <span>Applied</span>
-              <span>Resume</span>
-              <span>Status</span>
-              <span></span>
+          <>
+            <div className={styles.table}>
+              <div className={styles.tableHead}>
+                <span>Applicant</span>
+                <span>Role</span>
+                <span>Applied</span>
+                <span>Resume</span>
+                <span>Status</span>
+                <span></span>
+              </div>
+
+              {paginated.map(app => {
+                const cfg = STATUS_CONFIG[app.status as keyof typeof STATUS_CONFIG]
+                return (
+                  <div key={app._id} className={styles.tableRow}>
+                    <div>
+                      <p className={styles.name}>{app.seeker?.name}</p>
+                      <p className={styles.email}>{app.seeker?.email}</p>
+                      {app.phone && <p className={styles.email}>{app.phone}</p>}
+                      {app.linkedIn && (
+                        <a href={app.linkedIn} target="_blank" rel="noopener noreferrer" className={styles.linkedIn}>
+                          LinkedIn ↗
+                        </a>
+                      )}
+                    </div>
+                    <div>
+                      <p className={styles.jobTitle}>{app.job?.title}</p>
+                      <p className={styles.email}>{app.job?.department}</p>
+                    </div>
+                    <span className={styles.date}>
+                      {new Date(app.createdAt).toLocaleDateString('en-AE', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </span>
+                    <a href={app.resumeUrl} target="_blank" rel="noopener noreferrer" className={styles.resumeLink}>
+                      View ↗
+                    </a>
+                    <select
+                      className={`${styles.statusSelect} ${styles[app.status]}`}
+                      value={app.status}
+                      onChange={e => updateStatus(app._id, e.target.value)}
+                    >
+                      {STATUSES.map(s => (
+                        <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>
+                      ))}
+                    </select>
+                    <button
+                      className={styles.deleteBtn}
+                      onClick={() => deleteApplicant(app._id)}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                        <path d="M10 11v6M14 11v6"/>
+                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                      </svg>
+                    </button>
+                  </div>
+                )
+              })}
             </div>
 
-            {apps.map(app => {
-              const cfg = STATUS_CONFIG[app.status as keyof typeof STATUS_CONFIG]
-              return (
-                <div key={app._id} className={styles.tableRow}>
-                  <div>
-                    <p className={styles.name}>{app.seeker?.name}</p>
-                    <p className={styles.email}>{app.seeker?.email}</p>
-                    {app.phone && <p className={styles.email}>{app.phone}</p>}
-                    {app.linkedIn && (
-                      <a href={app.linkedIn} target="_blank" rel="noopener noreferrer" className={styles.linkedIn}>
-                        LinkedIn ↗
-                      </a>
-                    )}
-                  </div>
-                  <div>
-                    <p className={styles.jobTitle}>{app.job?.title}</p>
-                    <p className={styles.email}>{app.job?.department}</p>
-                  </div>
-                  <span className={styles.date}>
-                    {new Date(app.createdAt).toLocaleDateString('en-AE', { day: 'numeric', month: 'short', year: 'numeric' })}
-                  </span>
-                  <a href={app.resumeUrl} target="_blank" rel="noopener noreferrer" className={styles.resumeLink}>
-  View ↗
-</a>
-                  <select
-                    className={`${styles.statusSelect} ${styles[app.status]}`}
-                    value={app.status}
-                    onChange={e => updateStatus(app._id, e.target.value)}
-                  >
-                    {STATUSES.map(s => (
-                      <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>
-                    ))}
-                  </select>
-                  <button
-                    className={styles.deleteBtn}
-                    onClick={() => deleteApplicant(app._id)}
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="3 6 5 6 21 6"/>
-                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                      <path d="M10 11v6M14 11v6"/>
-                      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-                    </svg>
-                  </button>
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className={styles.pagination}>
+                <button
+                  className={styles.pageBtn}
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M15 18l-6-6 6-6"/>
+                  </svg>
+                  Prev
+                </button>
+
+                <div className={styles.pageNumbers}>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                    <button
+                      key={p}
+                      className={`${styles.pageNum} ${page === p ? styles.pageNumActive : ''}`}
+                      onClick={() => setPage(p)}
+                    >
+                      {p}
+                    </button>
+                  ))}
                 </div>
-              )
-            })}
-          </div>
+
+                <button
+                  className={styles.pageBtn}
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                >
+                  Next
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 18l6-6-6-6"/>
+                  </svg>
+                </button>
+
+                <span className={styles.pageInfo}>
+                  Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, apps.length)} of {apps.length}
+                </span>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
