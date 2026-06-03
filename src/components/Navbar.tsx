@@ -24,6 +24,13 @@ export default function Navbar() {
           <Link href="/dashboard/hr" className={`${styles.navLink} ${pathname === '/dashboard/hr' ? styles.active : ''}`} onClick={() => setOpen(false)}>Dashboard</Link>
           <Link href="/dashboard/hr/jobs" className={`${styles.navLink} ${pathname.startsWith('/dashboard/hr/jobs') ? styles.active : ''}`} onClick={() => setOpen(false)}>Manage Jobs</Link>
           <Link href="/dashboard/hr/applications" className={`${styles.navLink} ${pathname.startsWith('/dashboard/hr/applications') ? styles.active : ''}`} onClick={() => setOpen(false)}>Applicants</Link>
+          <Link
+  href="/dashboard/hr/settings"
+  className={`${styles.navLink} ${pathname.startsWith('/dashboard/hr/settings') ? styles.active : ''}`}
+  onClick={() => setOpen(false)}
+>
+  Settings
+</Link>
         </>
       )}
     </>
