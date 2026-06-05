@@ -99,9 +99,9 @@ export default function JobDetailPage() {
             <hr className={styles.divider} />
 
             <section className={styles.section}>
-              <h2 className={styles.sectionTitle}>About this role</h2>
-              <p className={styles.body}>{job.description}</p>
-            </section>
+  <h2 className={styles.sectionTitle}>About this role</h2>
+  <p className={styles.body} style={{ whiteSpace: 'pre-wrap' }}>{job.description}</p>
+</section>
 
             {job.responsibilities?.length > 0 && (
               <section className={styles.section}>
