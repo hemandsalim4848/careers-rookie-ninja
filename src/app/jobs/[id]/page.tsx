@@ -134,7 +134,7 @@ export default function JobDetailPage() {
             {job.targetMarkets && (
   <section className={styles.section}>
     <h2 className={styles.sectionTitle}>Target markets & industries</h2>
-    <p className={styles.body}>{job.targetMarkets}</p>
+    <p className={styles.body} style={{ whiteSpace: 'pre-wrap' }}>{job.targetMarkets}</p>
   </section>
 )}
 
