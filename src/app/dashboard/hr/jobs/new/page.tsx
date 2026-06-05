@@ -13,8 +13,10 @@ export default function NewJobPage() {
   const [form, setForm] = useState({
     title: '', department: '', location: '', type: 'Full-time',
     remote: false, currency: 'AED', salaryMin: '', salaryMax: '',
-    description: '', responsibilities: '', requirements: '', niceToHave: '',
+    description: '', responsibilities: '', requirements: '', targetMarkets: '', niceToHave: '',
+    
   })
+  
 
   const set = (k: string, v: any) => setForm(f => ({ ...f, [k]: v }))
 
@@ -29,6 +31,7 @@ export default function NewJobPage() {
       salaryMax:       form.salaryMax ? Number(form.salaryMax) : undefined,
       responsibilities: form.responsibilities.split('\n').map(s => s.trim()).filter(Boolean),
       requirements:     form.requirements.split('\n').map(s => s.trim()).filter(Boolean),
+      targetMarkets: form.targetMarkets || undefined,
       niceToHave:       form.niceToHave.split('\n').map(s => s.trim()).filter(Boolean),
     }
 
@@ -123,6 +126,18 @@ export default function NewJobPage() {
               <label className={styles.label}>Requirements * <span className={styles.hint}>(one per line)</span></label>
               <textarea required rows={5} value={form.requirements} onChange={e => set('requirements', e.target.value)} placeholder={"5+ years React experience\nStrong TypeScript skills"} />
             </div>
+
+            <div className={styles.field}>
+  <label className={styles.label}>
+    Target markets & industries <span className={styles.hint}>(optional)</span>
+  </label>
+  <textarea
+    rows={5}
+    value={form.targetMarkets}
+    onChange={e => set('targetMarkets', e.target.value)}
+    placeholder="Describe the target markets, regions, and industries relevant to this role…"
+  />
+</div>
 
             <div className={styles.field}>
               <label className={styles.label}>Nice to have <span className={styles.hint}>(one per line, optional)</span></label>

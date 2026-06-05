@@ -131,6 +131,13 @@ export default function JobDetailPage() {
               </section>
             )}
 
+            {job.targetMarkets && (
+  <section className={styles.section}>
+    <h2 className={styles.sectionTitle}>Target markets & industries</h2>
+    <p className={styles.body}>{job.targetMarkets}</p>
+  </section>
+)}
+
             {job.niceToHave?.length > 0 && (
               <section className={styles.section}>
                 <h2 className={styles.sectionTitle}>Nice to have</h2>

@@ -11,6 +11,7 @@ export interface IJob extends Document {
   currency: string
   description: string
   responsibilities: string[]
+  targetMarkets?: string
   requirements: string[]
   niceToHave?: string[]
   status: 'open' | 'closed'
@@ -31,6 +32,7 @@ const JobSchema = new Schema<IJob>(
     currency:         { type: String, default: 'AED' },
     description:      { type: String, required: true },
     responsibilities: [{ type: String }],
+    targetMarkets: { type: String, default: '' },
     requirements:     [{ type: String }],
     niceToHave:       [{ type: String }],
     status:           { type: String, enum: ['open', 'closed'], default: 'open' },

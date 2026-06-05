@@ -9,36 +9,37 @@ export default function EditJobPage() {
   const { id } = useParams<{ id: string }>()
   const router  = useRouter()
 
-  const [loading, setLoading]     = useState(false)
-  const [fetching, setFetching]   = useState(true)
-  const [error, setError]         = useState('')
+  const [loading, setLoading]   = useState(false)
+  const [fetching, setFetching] = useState(true)
+  const [error, setError]       = useState('')
 
   const [form, setForm] = useState({
     title: '', department: '', location: '', type: 'Full-time',
     remote: false, currency: 'AED', salaryMin: '', salaryMax: '',
-    description: '', responsibilities: '', requirements: '', niceToHave: '',
+    description: '', responsibilities: '', requirements: '',targetMarkets: '', niceToHave: '',
   })
 
   const set = (k: string, v: any) => setForm(f => ({ ...f, [k]: v }))
 
-  // Load existing job data
   useEffect(() => {
     fetch(`/api/jobs/${id}`)
       .then(r => r.json())
       .then(job => {
         setForm({
-          title:            job.title ?? '',
-          department:       job.department ?? '',
-          location:         job.location ?? '',
-          type:             job.type ?? 'Full-time',
-          remote:           job.remote ?? false,
-          currency:         job.currency ?? 'INR',
+          title:            job.title            ?? '',
+          department:       job.department        ?? '',
+          location:         job.location          ?? '',
+          type:             job.type              ?? 'Full-time',
+          remote:           job.remote            ?? false,
+          currency:         job.currency          ?? 'AED',
           salaryMin:        job.salaryMin?.toString() ?? '',
           salaryMax:        job.salaryMax?.toString() ?? '',
-          description:      job.description ?? '',
+          description:      job.description       ?? '',
           responsibilities: (job.responsibilities ?? []).join('\n'),
-          requirements:     (job.requirements ?? []).join('\n'),
-          niceToHave:       (job.niceToHave ?? []).join('\n'),
+          requirements:     (job.requirements     ?? []).join('\n'),
+           targetMarkets:    job.targetMarkets      ?? '',
+          niceToHave:       (job.niceToHave       ?? []).join('\n'),
+         
         })
         setFetching(false)
       })
@@ -56,7 +57,9 @@ export default function EditJobPage() {
       salaryMax:        form.salaryMax ? Number(form.salaryMax) : undefined,
       responsibilities: form.responsibilities.split('\n').map(s => s.trim()).filter(Boolean),
       requirements:     form.requirements.split('\n').map(s => s.trim()).filter(Boolean),
+      targetMarkets:    form.targetMarkets || undefined,
       niceToHave:       form.niceToHave.split('\n').map(s => s.trim()).filter(Boolean),
+      
     }
 
     const res = await fetch(`/api/jobs/${id}`, {
@@ -100,14 +103,14 @@ export default function EditJobPage() {
 
             <div className={styles.row}>
               <div className={styles.field}>
-  <label className={styles.label}>Location *</label>
-  <select required value={form.location} onChange={e => set('location', e.target.value)}>
-    <option value="">Select location</option>
-    <option value="Dubai">Dubai</option>
-    <option value="India">India</option>
-    <option value="Remote">Remote</option>
-  </select>
-</div>
+                <label className={styles.label}>Location *</label>
+                <select required value={form.location} onChange={e => set('location', e.target.value)}>
+                  <option value="">Select location</option>
+                  <option value="Dubai">Dubai</option>
+                  <option value="India">India</option>
+                  <option value="Remote">Remote</option>
+                </select>
+              </div>
               <div className={styles.field}>
                 <label className={styles.label}>Job type *</label>
                 <select value={form.type} onChange={e => set('type', e.target.value)}>
@@ -156,9 +159,21 @@ export default function EditJobPage() {
             </div>
 
             <div className={styles.field}>
+              <label className={styles.label}>Target markets & industries <span className={styles.hint}>(optional)</span></label>
+              <textarea
+                rows={5}
+                value={form.targetMarkets}
+                onChange={e => set('targetMarkets', e.target.value)}
+                placeholder="Describe the target markets, regions, and industries relevant to this role…"
+              />
+            </div>
+
+            <div className={styles.field}>
               <label className={styles.label}>Nice to have <span className={styles.hint}>(one per line, optional)</span></label>
               <textarea rows={3} value={form.niceToHave} onChange={e => set('niceToHave', e.target.value)} />
             </div>
+
+            
 
             {error && <p className={styles.error}>{error}</p>}
 
