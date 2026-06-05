@@ -8,6 +8,7 @@ const JOB_TYPES = ['Full-time', 'Part-time', 'Contract', 'Internship']
 
 export default function JobsPage() {
   const [jobs, setJobs]         = useState<any[]>([])
+  const [loading, setLoading]   = useState(true)
   const [search, setSearch]     = useState('')
   const [dept, setDept]         = useState('All')
   const [type, setType]         = useState('All')
@@ -15,23 +16,25 @@ export default function JobsPage() {
   const [location, setLocation] = useState('All')
 
   useEffect(() => {
-    fetch('/api/jobs').then(r => r.json()).then(setJobs)
+    fetch('/api/jobs')
+      .then(r => r.json())
+      .then(data => { setJobs(data); setLoading(false) })
+      .catch(() => setLoading(false))
   }, [])
 
   const departments = Array.from(new Set(jobs.map((j: any) => j.department)))
 
-const filtered = useMemo(() => {
-  return jobs.filter(job => {
-    if (search && !job.title.toLowerCase().includes(search.toLowerCase()) &&
-        !job.department.toLowerCase().includes(search.toLowerCase())) return false
-    if (dept !== 'All' && job.department !== dept) return false
-    if (type !== 'All' && job.type !== type) return false
-    if (remoteOnly && !job.remote) return false
-    // Skip location filter for remote jobs
-    if (location !== 'All' && !job.remote && job.location !== location) return false
-    return true
-  })
-}, [jobs, search, dept, type, location, remoteOnly])
+  const filtered = useMemo(() => {
+    return jobs.filter(job => {
+      if (search && !job.title.toLowerCase().includes(search.toLowerCase()) &&
+          !job.department.toLowerCase().includes(search.toLowerCase())) return false
+      if (dept !== 'All' && job.department !== dept) return false
+      if (type !== 'All' && job.type !== type) return false
+      if (remoteOnly && !job.remote) return false
+      if (location !== 'All' && !job.remote && job.location !== location) return false
+      return true
+    })
+  }, [jobs, search, dept, type, location, remoteOnly])
 
   const cardStyle = (i: number) => ({ animationDelay: `${i * 60}ms` } as React.CSSProperties)
 
@@ -45,7 +48,7 @@ const filtered = useMemo(() => {
         <div className="container">
           <div className={styles.heroPill}>
             <span className={styles.heroPillDot} />
-            {jobs.length} open positions
+            {loading ? '—' : `${jobs.length} open positions`}
           </div>
           <h1 className={styles.heroHeading}>
             Build something<br />
@@ -108,44 +111,62 @@ const filtered = useMemo(() => {
               </div>
 
               <div className={styles.filterSection}>
-  <p className={styles.filterLabel}>Location</p>
-  {['All', 'Dubai', 'India',].map(l => (
-  <button
-    key={l}
-    className={`${styles.filterBtn} ${location === l ? styles.filterActive : ''}`}
-    onClick={() => setLocation(l)}
-  >
-    {l}
-  </button>
-))}
-</div>
+                <p className={styles.filterLabel}>Location</p>
+                {['All', 'Dubai', 'India'].map(l => (
+                  <button
+                    key={l}
+                    className={`${styles.filterBtn} ${location === l ? styles.filterActive : ''}`}
+                    onClick={() => setLocation(l)}
+                  >
+                    {l}
+                  </button>
+                ))}
+              </div>
 
-<div className={styles.filterSection}>
-  <p className={styles.filterLabel}>Work type</p>
-  <label className={styles.toggleRow}>
-    <input type="checkbox" checked={remoteOnly} onChange={e => setRemote(e.target.checked)} className={styles.toggleInput} />
-    <span className={styles.toggle} />
-    Remote only
-  </label>
-</div>
+              <div className={styles.filterSection}>
+                <p className={styles.filterLabel}>Work type</p>
+                <label className={styles.toggleRow}>
+                  <input
+                    type="checkbox"
+                    checked={remoteOnly}
+                    onChange={e => setRemote(e.target.checked)}
+                    className={styles.toggleInput}
+                  />
+                  <span className={styles.toggle} />
+                  Remote only
+                </label>
+              </div>
             </aside>
 
             <div className={styles.main}>
               <div className={styles.resultsBar}>
                 <span className={styles.resultsCount}>
-                  <strong>{filtered.length}</strong> {filtered.length === 1 ? 'role' : 'roles'} found
+                  {loading ? (
+                    <span className={styles.skeletonText} />
+                  ) : (
+                    <><strong>{filtered.length}</strong> {filtered.length === 1 ? 'role' : 'roles'} found</>
+                  )}
                 </span>
-                {(search || dept !== 'All' || type !== 'All' || location !== 'All' || remoteOnly) && (
-  <button className={styles.clearBtn} onClick={() => { setSearch(''); setDept('All'); setType('All'); setLocation('All'); setRemote(false) }}>
-    Clear filters
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-      <path d="M18 6 6 18M6 6l12 12"/>
-    </svg>
-  </button>
-)}
+                {!loading && (search || dept !== 'All' || type !== 'All' || location !== 'All' || remoteOnly) && (
+                  <button
+                    className={styles.clearBtn}
+                    onClick={() => { setSearch(''); setDept('All'); setType('All'); setLocation('All'); setRemote(false) }}
+                  >
+                    Clear filters
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                      <path d="M18 6 6 18M6 6l12 12"/>
+                    </svg>
+                  </button>
+                )}
               </div>
 
-              {filtered.length === 0 ? (
+              {loading ? (
+                <div className={styles.grid}>
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className={styles.skeletonCard} />
+                  ))}
+                </div>
+              ) : filtered.length === 0 ? (
                 <div className={styles.empty}>
                   <div className={styles.emptyIcon}>
                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -160,10 +181,10 @@ const filtered = useMemo(() => {
                   {filtered.map((job, i) => (
                     <div key={job._id} style={cardStyle(i)}>
                       <JobCard
-  {...job}
-  postedAt={job.createdAt}   // ← add this line
-  isNew={Date.now() - new Date(job.createdAt).getTime() < 3 * 86400000}
-/>
+                        {...job}
+                        postedAt={job.createdAt}
+                        isNew={Date.now() - new Date(job.createdAt).getTime() < 3 * 86400000}
+                      />
                     </div>
                   ))}
                 </div>
