@@ -15,14 +15,25 @@ const STATUS_CONFIG = {
 
 const PAGE_SIZE = 5
 
+function Detail({ label, value }: { label: string; value?: string }) {
+  if (!value) return null
+  return (
+    <div className={styles.detailItem}>
+      <span className={styles.detailLabel}>{label}</span>
+      <span className={styles.detailValue}>{value}</span>
+    </div>
+  )
+}
+
 function ApplicationsContent() {
-  const searchParams        = useSearchParams()
-  const jobId               = searchParams.get('jobId') ?? ''
-  const [apps, setApps]     = useState<any[]>([])
-  const [jobs, setJobs]     = useState<any[]>([])
-  const [filter, setFilter] = useState(jobId)
-  const [loading, setLoading] = useState(true)
-  const [page, setPage]     = useState(1)
+  const searchParams            = useSearchParams()
+  const jobId                   = searchParams.get('jobId') ?? ''
+  const [apps, setApps]         = useState<any[]>([])
+  const [jobs, setJobs]         = useState<any[]>([])
+  const [filter, setFilter]     = useState(jobId)
+  const [loading, setLoading]   = useState(true)
+  const [page, setPage]         = useState(1)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/jobs?status=all').then(r => r.json()).then(setJobs)
@@ -31,7 +42,8 @@ function ApplicationsContent() {
   useEffect(() => {
     const url = filter ? `/api/applications?jobId=${filter}` : '/api/applications'
     setLoading(true)
-    setPage(1) // reset to first page on filter change
+    setPage(1)
+    setExpandedId(null)
     fetch(url).then(r => r.json()).then(data => { setApps(data); setLoading(false) })
   }, [filter])
 
@@ -48,6 +60,7 @@ function ApplicationsContent() {
     if (!confirm('Delete this applicant? This cannot be undone.')) return
     await fetch(`/api/applications/${id}`, { method: 'DELETE' })
     setApps(prev => prev.filter(a => a._id !== id))
+    if (expandedId === id) setExpandedId(null)
   }
 
   function exportCSV() {
@@ -57,9 +70,8 @@ function ApplicationsContent() {
     window.open(url, '_blank')
   }
 
-  // Pagination calculations
-  const totalPages  = Math.ceil(apps.length / PAGE_SIZE)
-  const paginated   = apps.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const totalPages = Math.ceil(apps.length / PAGE_SIZE)
+  const paginated  = apps.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   return (
     <div className={styles.page}>
@@ -109,53 +121,108 @@ function ApplicationsContent() {
                 <span></span>
               </div>
 
-              {paginated.map(app => {
-                const cfg = STATUS_CONFIG[app.status as keyof typeof STATUS_CONFIG]
-                return (
-                  <div key={app._id} className={styles.tableRow}>
-                    <div>
-                      <p className={styles.name}>{app.seeker?.name}</p>
-                      <p className={styles.email}>{app.seeker?.email}</p>
-                      {app.phone && <p className={styles.email}>{app.phone}</p>}
-                      {app.linkedIn && (
-                        <a href={app.linkedIn} target="_blank" rel="noopener noreferrer" className={styles.linkedIn}>
-                          LinkedIn ↗
-                        </a>
-                      )}
-                    </div>
-                    <div>
-                      <p className={styles.jobTitle}>{app.job?.title}</p>
-                      <p className={styles.email}>{app.job?.department}</p>
-                    </div>
-                    <span className={styles.date}>
-                      {new Date(app.createdAt).toLocaleDateString('en-AE', { day: 'numeric', month: 'short', year: 'numeric' })}
-                    </span>
-                    <a href={app.resumeUrl} target="_blank" rel="noopener noreferrer" className={styles.resumeLink}>
-                      View ↗
-                    </a>
-                    <select
-                      className={`${styles.statusSelect} ${styles[app.status]}`}
-                      value={app.status}
-                      onChange={e => updateStatus(app._id, e.target.value)}
-                    >
-                      {STATUSES.map(s => (
-                        <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>
-                      ))}
-                    </select>
-                    <button
-                      className={styles.deleteBtn}
-                      onClick={() => deleteApplicant(app._id)}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="3 6 5 6 21 6"/>
-                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                        <path d="M10 11v6M14 11v6"/>
-                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-                      </svg>
-                    </button>
-                  </div>
-                )
-              })}
+             {paginated.map(app => {
+  const isExpanded = expandedId === app._id
+  const isUAE = app.job?.location === 'Dubai'
+
+  return (
+    <div key={app._id}>
+      {/* Main row */}
+      <div
+        className={`${styles.tableRow} ${isExpanded ? styles.tableRowExpanded : ''}`}
+        onClick={() => setExpandedId(isExpanded ? null : app._id)}
+        style={{ cursor: 'pointer' }}
+      >
+        <div>
+          <p className={styles.name}>{app.seeker?.name}</p>
+          <p className={styles.email}>{app.seeker?.email}</p>
+          {app.phone && <p className={styles.email}>{app.phone}</p>}
+          {app.linkedIn && (
+            <a href={app.linkedIn} target="_blank" rel="noopener noreferrer" className={styles.linkedIn} onClick={e => e.stopPropagation()}>
+              LinkedIn ↗
+            </a>
+          )}
+        </div>
+        <div>
+          <p className={styles.jobTitle}>{app.job?.title}</p>
+          <p className={styles.email}>{app.job?.department}</p>
+        </div>
+        <span className={styles.date}>
+          {new Date(app.createdAt).toLocaleDateString('en-AE', { day: 'numeric', month: 'short', year: 'numeric' })}
+        </span>
+        <a href={app.resumeUrl} target="_blank" rel="noopener noreferrer" className={styles.resumeLink} onClick={e => e.stopPropagation()}>
+          View ↗
+        </a>
+        <select
+          className={`${styles.statusSelect} ${styles[app.status]}`}
+          value={app.status}
+          onChange={e => { e.stopPropagation(); updateStatus(app._id, e.target.value) }}
+          onClick={e => e.stopPropagation()}
+        >
+          {STATUSES.map(s => (
+            <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>
+          ))}
+        </select>
+        <div className={styles.rowActions} onClick={e => e.stopPropagation()}>
+          <button
+            className={`${styles.expandBtn} ${isExpanded ? styles.expandBtnActive : ''}`}
+            onClick={() => setExpandedId(isExpanded ? null : app._id)}
+          >
+            <svg
+              width="14" height="14" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+              style={{ transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
+            >
+              <path d="M6 9l6 6 6-6"/>
+            </svg>
+          </button>
+          <button className={styles.deleteBtn} onClick={() => deleteApplicant(app._id)}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+              <path d="M10 11v6M14 11v6"/>
+              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Expanded drawer */}
+      {isExpanded && (
+        <div className={styles.drawer}>
+          <div className={styles.drawerGrid}>
+            <div className={styles.drawerSection}>
+              <p className={styles.drawerSectionTitle}>Application details</p>
+              <Detail label="Current location"   value={app.location} />
+              <Detail label="Experience"         value={app.experience} />
+              <Detail label="Education"          value={app.education} />
+              <Detail label="Travel willingness" value={app.travelWillingness} />
+              <Detail label="Current salary"     value={app.currentSalary} />
+              <Detail label="Expected salary"    value={app.expectedSalary} />
+              <Detail label="Notice period"      value={app.noticePeriod} />
+            </div>
+
+            {isUAE && (app.basedInUAE || app.emirate || app.uaeDrivingLicense) && (
+              <div className={styles.drawerSection}>
+                <p className={styles.drawerSectionTitle}>UAE details</p>
+                <Detail label="Based in UAE"        value={app.basedInUAE} />
+                <Detail label="Emirate"             value={app.emirate} />
+                <Detail label="UAE Driving License" value={app.uaeDrivingLicense} />
+              </div>
+            )}
+
+            {app.coverLetter && (
+              <div className={`${styles.drawerSection} ${styles.drawerSectionFull}`}>
+                <p className={styles.drawerSectionTitle}>Cover letter</p>
+                <p className={styles.drawerCoverLetter}>{app.coverLetter}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+})}
             </div>
 
             {/* Pagination */}
@@ -171,7 +238,6 @@ function ApplicationsContent() {
                   </svg>
                   Prev
                 </button>
-
                 <div className={styles.pageNumbers}>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
                     <button
@@ -183,7 +249,6 @@ function ApplicationsContent() {
                     </button>
                   ))}
                 </div>
-
                 <button
                   className={styles.pageBtn}
                   onClick={() => setPage(p => Math.min(totalPages, p + 1))}
@@ -194,7 +259,6 @@ function ApplicationsContent() {
                     <path d="M9 18l6-6-6-6"/>
                   </svg>
                 </button>
-
                 <span className={styles.pageInfo}>
                   Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, apps.length)} of {apps.length}
                 </span>

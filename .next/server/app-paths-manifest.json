@@ -5,8 +5,8 @@
   "/jobs/[id]/apply/page": "app/jobs/[id]/apply/page.js",
   "/dashboard/seeker/page": "app/dashboard/seeker/page.js",
   "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
-  "/api/profile/route": "app/api/profile/route.js",
-  "/api/jobs/[id]/route": "app/api/jobs/[id]/route.js",
   "/api/applications/route": "app/api/applications/route.js",
-  "/api/jobs/route": "app/api/jobs/route.js"
+  "/dashboard/hr/applications/page": "app/dashboard/hr/applications/page.js",
+  "/api/jobs/route": "app/api/jobs/route.js",
+  "/api/applications/[id]/route": "app/api/applications/[id]/route.js"
 }

@@ -42,11 +42,13 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .tableHead {
   display: grid;
-  grid-template-columns: 1.5fr 1.2fr 110px 80px 140px 40px;
+  grid-template-columns: 1.5fr 1.2fr 110px 80px 140px 72px;
   gap: 16px;
   padding: 12px 20px;
   background: var(--bg-3);
@@ -62,7 +64,7 @@
 
 .tableRow {
   display: grid;
-  grid-template-columns: 1.5fr 1.2fr 110px 80px 140px 40px;
+  grid-template-columns: 1.5fr 1.2fr 110px 80px 140px 72px;
   gap: 16px;
   padding: 16px 20px;
   border-bottom: 1px solid var(--border);
@@ -226,6 +228,101 @@
   font-size: 13px;
   color: var(--text-muted);
   margin-left: auto;
+}
+
+.tableRowExpanded {
+  background: var(--bg-3);
+  border-bottom: none !important;
+}
+
+.rowActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.expandBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+
+.expandBtn:hover {
+  border-color: var(--border-hover);
+  color: var(--accent);
+}
+
+.expandBtnActive {
+  background: var(--accent-dim) !important;
+  border-color: var(--accent-mid) !important;
+  color: var(--accent) !important;
+}
+
+.drawer {
+  border-bottom: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  background: var(--bg-2);
+  padding: 20px 24px;
+  animation: fadeUp 0.2s ease;
+}
+
+.drawerGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 24px;
+}
+
+.drawerSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.drawerSectionFull {
+  grid-column: 1 / -1;
+}
+
+.drawerSectionTitle {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+.detailItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.detailLabel {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.detailValue {
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.drawerCoverLetter {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  white-space: pre-wrap;
 }
 
 @media (max-width: 900px) {

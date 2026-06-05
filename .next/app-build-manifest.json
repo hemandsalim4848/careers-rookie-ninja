@@ -41,6 +41,12 @@
       "static/chunks/main-app.js",
       "static/css/app/dashboard/seeker/page.css",
       "static/chunks/app/dashboard/seeker/page.js"
+    ],
+    "/dashboard/hr/applications/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/dashboard/hr/applications/page.css",
+      "static/chunks/app/dashboard/hr/applications/page.js"
     ]
   }
 }
