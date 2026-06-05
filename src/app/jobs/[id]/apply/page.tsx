@@ -12,17 +12,38 @@ export default function ApplyPage() {
   const router = useRouter()
 
   const [profile, setProfile]       = useState<any>(null)
+  const [job, setJob]               = useState<any>(null)
   const [loading, setLoading]       = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError]           = useState('')
   const [submitted, setSubmitted]   = useState(false)
 
+  // Form fields
+  const [coverLetter,       setCoverLetter]       = useState('')
+  const [location,          setLocation]          = useState('')
+  const [experience,        setExperience]        = useState('')
+  const [travelWillingness, setTravelWillingness] = useState('')
+  const [education,         setEducation]         = useState('')
+  const [currentSalary,     setCurrentSalary]     = useState('')
+  const [expectedSalary,    setExpectedSalary]    = useState('')
+  const [noticePeriod,      setNoticePeriod]      = useState('')
+  // UAE specific
+  const [basedInUAE,        setBasedInUAE]        = useState('')
+  const [emirate,           setEmirate]           = useState('')
+  const [uaeDrivingLicense, setUaeDrivingLicense] = useState('')
+
   useEffect(() => {
-    fetch('/api/profile')
-      .then(r => r.json())
-      .then(data => { setProfile(data); setLoading(false) })
-      .catch(() => setLoading(false))
-  }, [])
+    Promise.all([
+      fetch('/api/profile').then(r => r.json()),
+      fetch(`/api/jobs/${id}`).then(r => r.json()),
+    ]).then(([prof, j]) => {
+      setProfile(prof)
+      setJob(j)
+      setLoading(false)
+    }).catch(() => setLoading(false))
+  }, [id])
+
+  const isDubai = job?.location === 'Dubai'
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -37,11 +58,19 @@ export default function ApplyPage() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        job:         id,
-        resumeUrl:   profile.resumeUrl,
-        phone:       profile.phone    ?? '',
-        linkedIn:    profile.linkedIn ?? '',
-        coverLetter: (document.getElementById('cover') as HTMLTextAreaElement)?.value ?? '',
+        job:               id,
+        resumeUrl:         profile.resumeUrl,
+        phone:             profile.phone    ?? '',
+        linkedIn:          profile.linkedIn ?? '',
+        coverLetter,
+        location,
+        experience,
+        travelWillingness,
+        education,
+        currentSalary,
+        expectedSalary,
+        noticePeriod,
+        ...(isDubai && { basedInUAE, emirate, uaeDrivingLicense }),
       }),
     })
 
@@ -89,12 +118,33 @@ export default function ApplyPage() {
         <div className={styles.card}>
           <h1 className={styles.heading}>Submit your application</h1>
           <p className={styles.sub}>
-            Applying as <strong>{session?.user?.name}</strong> · {session?.user?.email}
+            Applying for <strong>{job?.title}</strong> · {job?.department}
           </p>
 
           <form onSubmit={handleSubmit} className={styles.form}>
 
-            {/* Resume preview */}
+            {/* ── AUTO-FILLED INFO ── */}
+            <div className={styles.autoFillSection}>
+              <p className={styles.autoFillLabel}>Your details</p>
+              <div className={styles.autoFillGrid}>
+                <div className={styles.autoFillField}>
+                  <label className={styles.label}>Full name</label>
+                  <input value={session?.user?.name ?? ''} readOnly className={styles.readOnly} />
+                </div>
+                <div className={styles.autoFillField}>
+                  <label className={styles.label}>Email</label>
+                  <input value={session?.user?.email ?? ''} readOnly className={styles.readOnly} />
+                </div>
+              </div>
+              <p className={styles.autoFillNote}>
+                Wrong details?{' '}
+                <Link href="/dashboard/seeker" className={styles.autoFillLink}>
+                  Update in your profile →
+                </Link>
+              </p>
+            </div>
+
+            {/* ── RESUME ── */}
             <div className={styles.field}>
               <label className={styles.label}>Your resume</label>
               {profile?.resumeUrl ? (
@@ -104,12 +154,8 @@ export default function ApplyPage() {
                     <polyline points="14 2 14 8 20 8"/>
                   </svg>
                   <span>Resume on file</span>
-                  <a href={profile.resumeUrl} target="_blank" rel="noopener noreferrer" className={styles.viewLink}>
-  View ↗
-</a>
-                  <Link href="/dashboard/seeker" className={styles.updateLink}>
-                    Update in profile
-                  </Link>
+                  <a href={profile.resumeUrl} target="_blank" rel="noopener noreferrer" className={styles.viewLink}>View ↗</a>
+                  <Link href="/dashboard/seeker" className={styles.updateLink}>Update in profile</Link>
                 </div>
               ) : (
                 <div className={styles.noResume}>
@@ -121,18 +167,140 @@ export default function ApplyPage() {
               )}
             </div>
 
-            {/* Profile info preview */}
-            {(profile?.phone || profile?.linkedIn) && (
+            <hr className={styles.divider} />
+
+            {/* ── UNIVERSAL FIELDS ── */}
+            <div className={styles.sectionHeading}>Application details</div>
+
+            <div className={styles.fieldRow}>
               <div className={styles.field}>
-                <label className={styles.label}>Your profile info</label>
-                <div className={styles.profilePreview}>
-                  {profile.phone    && <span>📞 {profile.phone}</span>}
-                  {profile.linkedIn && <a href={profile.linkedIn} target="_blank" rel="noopener noreferrer" className={styles.viewLink}>LinkedIn ↗</a>}
-                </div>
+                <label className={styles.label}>Current location <span className={styles.req}>*</span></label>
+                <input
+                  required
+                  value={location}
+                  onChange={e => setLocation(e.target.value)}
+                  placeholder="e.g. Dubai, Chennai, London"
+                />
               </div>
+              <div className={styles.field}>
+                <label className={styles.label}>Years of IT Sales/Distribution experience <span className={styles.req}>*</span></label>
+                <select required value={experience} onChange={e => setExperience(e.target.value)}>
+                  <option value="">Select</option>
+                  <option>Less than 1 year</option>
+                  <option>1–2 years</option>
+                  <option>3–5 years</option>
+                  <option>6–10 years</option>
+                  <option>10+ years</option>
+                </select>
+              </div>
+            </div>
+
+            <div className={styles.fieldRow}>
+              <div className={styles.field}>
+                <label className={styles.label}>Highest education level <span className={styles.req}>*</span></label>
+                <select required value={education} onChange={e => setEducation(e.target.value)}>
+                  <option value="">Select</option>
+                  <option>High School / Secondary</option>
+                  <option>Diploma</option>
+                  <option>Bachelor's Degree</option>
+                  <option>Master's Degree</option>
+                  <option>PhD / Doctorate</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div className={styles.field}>
+                <label className={styles.label}>Willingness to travel <span className={styles.req}>*</span></label>
+                <select required value={travelWillingness} onChange={e => setTravelWillingness(e.target.value)}>
+                  <option value="">Select</option>
+                  <option>25%</option>
+                  <option>50%</option>
+                  <option>75%</option>
+                  <option>100%</option>
+                </select>
+              </div>
+            </div>
+
+            <div className={styles.fieldRow}>
+              <div className={styles.field}>
+                <label className={styles.label}>Current monthly salary <span className={styles.req}>*</span></label>
+                <input
+                  required
+                  value={currentSalary}
+                  onChange={e => setCurrentSalary(e.target.value)}
+                  placeholder="e.g. AED 8,000 or INR 50,000"
+                />
+              </div>
+              <div className={styles.field}>
+                <label className={styles.label}>Expected monthly salary <span className={styles.req}>*</span></label>
+                <input
+                  required
+                  value={expectedSalary}
+                  onChange={e => setExpectedSalary(e.target.value)}
+                  placeholder="e.g. AED 12,000 or INR 80,000"
+                />
+              </div>
+            </div>
+
+            <div className={styles.field}>
+              <label className={styles.label}>How soon can you join? <span className={styles.req}>*</span></label>
+              <select required value={noticePeriod} onChange={e => setNoticePeriod(e.target.value)}>
+                <option value="">Select</option>
+                <option>Immediately</option>
+                <option>2 weeks</option>
+                <option>1 month</option>
+                <option>2 months</option>
+                <option>3 months</option>
+                <option>More than 3 months</option>
+              </select>
+            </div>
+
+            {/* ── UAE SPECIFIC ── */}
+            {isDubai && (
+              <>
+                <hr className={styles.divider} />
+                <div className={styles.sectionHeading}>
+                  UAE details
+                  <span className={styles.sectionBadge}>Dubai role</span>
+                </div>
+
+                <div className={styles.fieldRow}>
+                  <div className={styles.field}>
+                    <label className={styles.label}>Are you currently based in the UAE? <span className={styles.req}>*</span></label>
+                    <select required value={basedInUAE} onChange={e => setBasedInUAE(e.target.value)}>
+                      <option value="">Select</option>
+                      <option>Yes</option>
+                      <option>No</option>
+                    </select>
+                  </div>
+                  <div className={styles.field}>
+                    <label className={styles.label}>Do you have a valid UAE Driving License? <span className={styles.req}>*</span></label>
+                    <select required value={uaeDrivingLicense} onChange={e => setUaeDrivingLicense(e.target.value)}>
+                      <option value="">Select</option>
+                      <option>Yes</option>
+                      <option>No</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className={styles.field}>
+                  <label className={styles.label}>Emirate <span className={styles.req}>*</span></label>
+                  <select required value={emirate} onChange={e => setEmirate(e.target.value)}>
+                    <option value="">Select emirate</option>
+                    <option>Abu Dhabi</option>
+                    <option>Ajman</option>
+                    <option>Dubai</option>
+                    <option>Fujairah</option>
+                    <option>Ras Al Khaimah</option>
+                    <option>Sharjah</option>
+                    <option>Umm Al Quwain</option>
+                  </select>
+                </div>
+              </>
             )}
 
-            {/* Cover letter */}
+            <hr className={styles.divider} />
+
+            {/* ── COVER LETTER ── */}
             <div className={styles.field}>
               <label htmlFor="cover" className={styles.label}>
                 Cover letter <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(optional)</span>
@@ -141,6 +309,8 @@ export default function ApplyPage() {
                 id="cover"
                 rows={6}
                 placeholder="Tell us why you're a great fit for this role…"
+                value={coverLetter}
+                onChange={e => setCoverLetter(e.target.value)}
                 className={styles.textarea}
               />
             </div>

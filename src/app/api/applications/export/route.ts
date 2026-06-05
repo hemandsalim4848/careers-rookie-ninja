@@ -26,17 +26,27 @@ export async function GET(req: NextRequest) {
     return new NextResponse('No applications found', { status: 404 })
   }
 
-  const rows = applications.map((a: any) => ({
-    Name:       a.seeker?.name       ?? '',
-    Email:      a.seeker?.email      ?? '',
-    Job:        a.job?.title         ?? '',
-    Department: a.job?.department    ?? '',
-    Phone:      a.phone              ?? '',
-    LinkedIn:   a.linkedIn           ?? '',
-    Status:     a.status,
-    Applied:    new Date(a.createdAt).toLocaleDateString('en-AE'),
-    Resume:     a.resumeUrl,
-  }))
+const rows = applications.map((a: any) => ({
+  Name:               a.seeker?.name       ?? '',
+  Email:              a.seeker?.email      ?? '',
+  Job:                a.job?.title         ?? '',
+  Department:         a.job?.department    ?? '',
+  Phone:              a.phone              ?? '',
+  LinkedIn:           a.linkedIn           ?? '',
+  Location:           a.location           ?? '',
+  Experience:         a.experience         ?? '',
+  Education:          a.education          ?? '',
+  'Travel %':         a.travelWillingness  ?? '',
+  'Current Salary':   a.currentSalary      ?? '',
+  'Expected Salary':  a.expectedSalary     ?? '',
+  'Notice Period':    a.noticePeriod       ?? '',
+  'Based in UAE':     a.basedInUAE         ?? '',
+  Emirate:            a.emirate            ?? '',
+  'UAE Driving Lic':  a.uaeDrivingLicense  ?? '',
+  Status:             a.status,
+  Applied:            new Date(a.createdAt).toLocaleDateString('en-AE'),
+  Resume:             a.resumeUrl,
+}))
 
   const headers = Object.keys(rows[0])
   const csv = [
