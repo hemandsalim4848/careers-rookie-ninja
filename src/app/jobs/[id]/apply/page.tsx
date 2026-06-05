@@ -136,12 +136,6 @@ export default function ApplyPage() {
                   <input value={session?.user?.email ?? ''} readOnly className={styles.readOnly} />
                 </div>
               </div>
-              <p className={styles.autoFillNote}>
-                Wrong details?{' '}
-                <Link href="/dashboard/seeker" className={styles.autoFillLink}>
-                  Update in your profile →
-                </Link>
-              </p>
             </div>
 
             {/* ── RESUME ── */}

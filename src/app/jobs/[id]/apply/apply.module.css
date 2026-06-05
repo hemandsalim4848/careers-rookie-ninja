@@ -14,7 +14,7 @@
 .back:hover { color: var(--accent); }
 
 .card {
-  max-width: 580px;
+  max-width: 780px;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
