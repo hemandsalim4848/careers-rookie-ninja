@@ -35,7 +35,9 @@ function formatSalary(min?: number, max?: number, currency = 'USD') {
 }
 
 function timeAgo(date: string) {
+  if (!date) return ''
   const diff = Date.now() - new Date(date).getTime()
+  if (isNaN(diff)) return ''
   const days = Math.floor(diff / 86400000)
   if (days === 0) return 'Today'
   if (days === 1) return 'Yesterday'

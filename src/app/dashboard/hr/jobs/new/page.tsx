@@ -69,9 +69,14 @@ export default function NewJobPage() {
 
             <div className={styles.row}>
               <div className={styles.field}>
-                <label className={styles.label}>Location *</label>
-                <input required value={form.location} onChange={e => set('location', e.target.value)} placeholder="e.g. Dubai, Sharjah" />
-              </div>
+  <label className={styles.label}>Location *</label>
+  <select required value={form.location} onChange={e => set('location', e.target.value)}>
+    <option value="">Select location</option>
+    <option value="Dubai">Dubai</option>
+    <option value="India">India</option>
+    <option value="Remote">Remote</option>
+  </select>
+</div>
               <div className={styles.field}>
                 <label className={styles.label}>Job type *</label>
                 <select value={form.type} onChange={e => set('type', e.target.value)}>

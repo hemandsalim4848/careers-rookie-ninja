@@ -12,6 +12,7 @@ export default function JobsPage() {
   const [dept, setDept]         = useState('All')
   const [type, setType]         = useState('All')
   const [remoteOnly, setRemote] = useState(false)
+  const [location, setLocation] = useState('All')
 
   useEffect(() => {
     fetch('/api/jobs').then(r => r.json()).then(setJobs)
@@ -19,16 +20,17 @@ export default function JobsPage() {
 
   const departments = Array.from(new Set(jobs.map((j: any) => j.department)))
 
-  const filtered = useMemo(() => {
-    return jobs.filter(job => {
-      if (search && !job.title.toLowerCase().includes(search.toLowerCase()) &&
-          !job.department.toLowerCase().includes(search.toLowerCase())) return false
-      if (dept !== 'All' && job.department !== dept) return false
-      if (type !== 'All' && job.type !== type) return false
-      if (remoteOnly && !job.remote) return false
-      return true
-    })
-  }, [jobs, search, dept, type, remoteOnly])
+const filtered = useMemo(() => {
+  return jobs.filter(job => {
+    if (search && !job.title.toLowerCase().includes(search.toLowerCase()) &&
+        !job.department.toLowerCase().includes(search.toLowerCase())) return false
+    if (dept !== 'All' && job.department !== dept) return false
+    if (type !== 'All' && job.type !== type) return false
+    if (location !== 'All' && job.location !== location) return false
+    if (remoteOnly && !job.remote) return false
+    return true
+  })
+}, [jobs, search, dept, type, location, remoteOnly])
 
   const cardStyle = (i: number) => ({ animationDelay: `${i * 60}ms` } as React.CSSProperties)
 
@@ -105,13 +107,26 @@ export default function JobsPage() {
               </div>
 
               <div className={styles.filterSection}>
-                <p className={styles.filterLabel}>Location</p>
-                <label className={styles.toggleRow}>
-                  <input type="checkbox" checked={remoteOnly} onChange={e => setRemote(e.target.checked)} className={styles.toggleInput} />
-                  <span className={styles.toggle} />
-                  Remote only
-                </label>
-              </div>
+  <p className={styles.filterLabel}>Location</p>
+  {['All', 'Dubai', 'India', 'Remote'].map(l => (
+  <button
+    key={l}
+    className={`${styles.filterBtn} ${location === l ? styles.filterActive : ''}`}
+    onClick={() => setLocation(l)}
+  >
+    {l}
+  </button>
+))}
+</div>
+
+<div className={styles.filterSection}>
+  <p className={styles.filterLabel}>Work type</p>
+  <label className={styles.toggleRow}>
+    <input type="checkbox" checked={remoteOnly} onChange={e => setRemote(e.target.checked)} className={styles.toggleInput} />
+    <span className={styles.toggle} />
+    Remote only
+  </label>
+</div>
             </aside>
 
             <div className={styles.main}>
@@ -119,14 +134,14 @@ export default function JobsPage() {
                 <span className={styles.resultsCount}>
                   <strong>{filtered.length}</strong> {filtered.length === 1 ? 'role' : 'roles'} found
                 </span>
-                {(search || dept !== 'All' || type !== 'All' || remoteOnly) && (
-                  <button className={styles.clearBtn} onClick={() => { setSearch(''); setDept('All'); setType('All'); setRemote(false) }}>
-                    Clear filters
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                      <path d="M18 6 6 18M6 6l12 12"/>
-                    </svg>
-                  </button>
-                )}
+                {(search || dept !== 'All' || type !== 'All' || location !== 'All' || remoteOnly) && (
+  <button className={styles.clearBtn} onClick={() => { setSearch(''); setDept('All'); setType('All'); setLocation('All'); setRemote(false) }}>
+    Clear filters
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+      <path d="M18 6 6 18M6 6l12 12"/>
+    </svg>
+  </button>
+)}
               </div>
 
               {filtered.length === 0 ? (
