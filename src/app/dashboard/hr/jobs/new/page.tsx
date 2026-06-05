@@ -77,7 +77,6 @@ export default function NewJobPage() {
     <option value="">Select location</option>
     <option value="Dubai">Dubai</option>
     <option value="India">India</option>
-    <option value="Remote">Remote</option>
   </select>
 </div>
               <div className={styles.field}>

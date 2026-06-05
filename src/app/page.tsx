@@ -26,8 +26,9 @@ const filtered = useMemo(() => {
         !job.department.toLowerCase().includes(search.toLowerCase())) return false
     if (dept !== 'All' && job.department !== dept) return false
     if (type !== 'All' && job.type !== type) return false
-    if (location !== 'All' && job.location !== location) return false
     if (remoteOnly && !job.remote) return false
+    // Skip location filter for remote jobs
+    if (location !== 'All' && !job.remote && job.location !== location) return false
     return true
   })
 }, [jobs, search, dept, type, location, remoteOnly])
@@ -108,7 +109,7 @@ const filtered = useMemo(() => {
 
               <div className={styles.filterSection}>
   <p className={styles.filterLabel}>Location</p>
-  {['All', 'Dubai', 'India', 'Remote'].map(l => (
+  {['All', 'Dubai', 'India',].map(l => (
   <button
     key={l}
     className={`${styles.filterBtn} ${location === l ? styles.filterActive : ''}`}
