@@ -4,25 +4,25 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300&display=swap');
 
 :root {
-  --accent: #15A7DC;
-  --accent-dim: rgba(21, 167, 220, 0.12);
-  --accent-mid: rgba(21, 167, 220, 0.35);
-  --accent-glow: rgba(21, 167, 220, 0.06);
+  --accent: #000000;
+  --accent-dim: rgba(0, 0, 0, 0.08);
+  --accent-mid: rgba(0, 0, 0, 0.25);
+  --accent-glow: rgba(0, 0, 0, 0.04);
 
-  --bg: #F4F7FA;
-  --bg-2: #EBF0F6;
-  --bg-3: #E2EAF3;
-  --bg-4: #D6E1EE;
+  --bg: #FFFFFF;
+  --bg-2: #F8F8F8;
+  --bg-3: #F2F2F2;
+  --bg-4: #E8E8E8;
   --bg-card: #FFFFFF;
 
-  --text-primary: #0D1520;
-  --text-secondary: #4A5E72;
-  --text-muted: #8A9BB0;
+  --text-primary: #0A0A0A;
+  --text-secondary: #3D3D3D;
+  --text-muted: #888888;
 
   --border: rgba(0, 0, 0, 0.08);
-  --border-hover: rgba(21, 167, 220, 0.4);
+  --border-hover: rgba(0, 0, 0, 0.3);
 
---font-display: 'Poppins', sans-serif;
+  --font-display: 'Poppins', sans-serif;
   --font-body: 'Poppins', sans-serif;
 
   --radius-sm: 6px;
@@ -53,7 +53,7 @@ body {
 ::-webkit-scrollbar-thumb:hover { background: var(--accent-mid); }
 
 /* Selection */
-::selection { background: var(--accent-dim); color: var(--accent); }
+::selection { background: rgba(0,0,0,0.1); color: #000000; }
 
 /* Focus ring */
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: var(--radius-sm); }
@@ -140,10 +140,10 @@ input::placeholder { color: var(--text-muted); }
   border-radius: 99px;
   white-space: nowrap;
 }
-.tag-accent { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(21,167,220,0.2); }
-.tag-gray   { background: var(--bg-3); color: var(--text-secondary); border: 1px solid var(--border); }
-.tag-green  { background: rgba(52,211,153,0.1); color: #34D399; border: 1px solid rgba(52,211,153,0.2); }
-.tag-amber  { background: rgba(251,191,36,0.1); color: #FBBF24; border: 1px solid rgba(251,191,36,0.2); }
+.tag-accent { background: rgba(0,0,0,0.08); color: #000000; border: 1px solid rgba(0,0,0,0.15); }
+.tag-gray   { background: rgba(0,0,0,0.05); color: #555555; border: 1px solid rgba(0,0,0,0.1); }
+.tag-green  { background: rgba(22,163,74,0.1); color: #16A34A; border: 1px solid rgba(22,163,74,0.2); }
+.tag-amber  { background: rgba(217,119,6,0.1); color: #D97706; border: 1px solid rgba(217,119,6,0.2); }
 
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(16px); }

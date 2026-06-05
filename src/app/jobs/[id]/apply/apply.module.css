@@ -246,6 +246,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
+  align-items: start;
 }
 
 .autoFillSection {
@@ -271,6 +272,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+  align-items: start;
 }
 
 .autoFillField {
@@ -322,5 +324,35 @@
   .updateLink {
     border-left: none;
     padding-left: 0;
+  }
+}
+
+
+@media (max-width: 640px) {
+  .fieldRow     { grid-template-columns: 1fr; }
+  .autoFillGrid { grid-template-columns: 1fr; }
+
+  .card {
+    padding: 24px 16px;
+    border-radius: var(--radius-lg);
+  }
+
+  .submitBtn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .resumePreview {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .updateLink {
+    border-left: none;
+    padding-left: 0;
+  }
+
+  .sectionHeading {
+    flex-wrap: wrap;
   }
 }

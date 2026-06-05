@@ -478,6 +478,35 @@
   }
 }
 
+.page_skeletonCard__GzPGF {
+  height: 140px;
+  background: linear-gradient(
+    90deg,
+    var(--bg-card) 25%,
+    var(--bg-3) 50%,
+    var(--bg-card) 75%
+  );
+  background-size: 200% 100%;
+  animation: page_shimmer__qPtWe 1.5s infinite;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+}
+
+.page_skeletonText__F4w_p {
+  display: inline-block;
+  width: 120px;
+  height: 16px;
+  background: linear-gradient(
+    90deg,
+    var(--bg-card) 25%,
+    var(--bg-3) 50%,
+    var(--bg-card) 75%
+  );
+  background-size: 200% 100%;
+  animation: page_shimmer__qPtWe 1.5s infinite;
+  border-radius: 4px;
+}
+
 @media (max-width: 600px) {
   .page_hero__SKW6o {
     padding: 64px 0 48px;
