@@ -5,6 +5,7 @@ import JobCard from '@/components/JobCard'
 import styles from './page.module.css'
 
 const JOB_TYPES = ['Full-time', 'Part-time', 'Contract', 'Internship']
+const PAGE_SIZE = 5
 
 export default function JobsPage() {
   const [jobs, setJobs]         = useState<any[]>([])
@@ -14,6 +15,7 @@ export default function JobsPage() {
   const [type, setType]         = useState('All')
   const [remoteOnly, setRemote] = useState(false)
   const [location, setLocation] = useState('All')
+  const [page, setPage]         = useState(1)
 
   useEffect(() => {
     fetch('/api/jobs')
@@ -36,7 +38,12 @@ export default function JobsPage() {
     })
   }, [jobs, search, dept, type, location, remoteOnly])
 
-  const cardStyle = (i: number) => ({ animationDelay: `${i * 60}ms` } as React.CSSProperties)
+  // Reset to page 1 when filters change
+  useEffect(() => { setPage(1) }, [search, dept, type, location, remoteOnly])
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
+  const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const cardStyle  = (i: number) => ({ animationDelay: `${i * 60}ms` } as React.CSSProperties)
 
   return (
     <div className={styles.page}>
@@ -162,7 +169,7 @@ export default function JobsPage() {
 
               {loading ? (
                 <div className={styles.grid}>
-                  {[...Array(4)].map((_, i) => (
+                  {[...Array(5)].map((_, i) => (
                     <div key={i} className={styles.skeletonCard} />
                   ))}
                 </div>
@@ -177,17 +184,62 @@ export default function JobsPage() {
                   <p className={styles.emptySub}>Try adjusting your filters or search term.</p>
                 </div>
               ) : (
-                <div className={styles.grid}>
-                  {filtered.map((job, i) => (
-                    <div key={job._id} style={cardStyle(i)}>
-                      <JobCard
-                        {...job}
-                        postedAt={job.createdAt}
-                        isNew={Date.now() - new Date(job.createdAt).getTime() < 3 * 86400000}
-                      />
+                <>
+                  <div className={styles.grid}>
+                    {paginated.map((job, i) => (
+                      <div key={job._id} style={cardStyle(i)}>
+                        <JobCard
+                          {...job}
+                          postedAt={job.createdAt}
+                          isNew={Date.now() - new Date(job.createdAt).getTime() < 3 * 86400000}
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <div className={styles.pagination}>
+                      <button
+                        className={styles.pageBtn}
+                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                        disabled={page === 1}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M15 18l-6-6 6-6"/>
+                        </svg>
+                        Prev
+                      </button>
+
+                      <div className={styles.pageNumbers}>
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                          <button
+                            key={p}
+                            className={`${styles.pageNum} ${page === p ? styles.pageNumActive : ''}`}
+                            onClick={() => setPage(p)}
+                          >
+                            {p}
+                          </button>
+                        ))}
+                      </div>
+
+                      <button
+                        className={styles.pageBtn}
+                        onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                        disabled={page === totalPages}
+                      >
+                        Next
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M9 18l6-6-6-6"/>
+                        </svg>
+                      </button>
+
+                      <span className={styles.pageInfo}>
+                        Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length}
+                      </span>
                     </div>
-                  ))}
-                </div>
+                  )}
+                </>
               )}
             </div>
           </div>
