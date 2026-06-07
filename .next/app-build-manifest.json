@@ -1,10 +1,10 @@
 {
   "pages": {
-    "/auth/register/page": [
+    "/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/css/app/auth/register/page.css",
-      "static/chunks/app/auth/register/page.js"
+      "static/css/app/page.css",
+      "static/chunks/app/page.js"
     ],
     "/layout": [
       "static/chunks/webpack.js",
@@ -12,29 +12,17 @@
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
     ],
-    "/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/css/app/page.css",
-      "static/chunks/app/page.js"
-    ],
-    "/jobs/[id]/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/css/app/jobs/[id]/page.css",
-      "static/chunks/app/jobs/[id]/page.js"
-    ],
     "/auth/login/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/css/app/auth/login/page.css",
       "static/chunks/app/auth/login/page.js"
     ],
-    "/jobs/[id]/apply/page": [
+    "/auth/register/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/css/app/jobs/[id]/apply/page.css",
-      "static/chunks/app/jobs/[id]/apply/page.js"
+      "static/css/app/auth/register/page.css",
+      "static/chunks/app/auth/register/page.js"
     ],
     "/dashboard/seeker/page": [
       "static/chunks/webpack.js",
@@ -42,11 +30,29 @@
       "static/css/app/dashboard/seeker/page.css",
       "static/chunks/app/dashboard/seeker/page.js"
     ],
+    "/jobs/[id]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/jobs/[id]/page.css",
+      "static/chunks/app/jobs/[id]/page.js"
+    ],
+    "/jobs/[id]/apply/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/jobs/[id]/apply/page.css",
+      "static/chunks/app/jobs/[id]/apply/page.js"
+    ],
     "/dashboard/hr/applications/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/css/app/dashboard/hr/applications/page.css",
       "static/chunks/app/dashboard/hr/applications/page.js"
+    ],
+    "/dashboard/hr/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/dashboard/hr/page.css",
+      "static/chunks/app/dashboard/hr/page.js"
     ]
   }
 }

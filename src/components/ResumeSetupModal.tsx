@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import styles from './ResumeSetupModal.module.css'
 
 interface Props {
@@ -10,51 +9,45 @@ interface Props {
 }
 
 export default function ResumeSetupModal({ onComplete, onSkip }: Props) {
-  const [file, setFile]       = useState<File | null>(null)
-  const [phone, setPhone]     = useState('')
+  const [file, setFile]         = useState<File | null>(null)
   const [linkedIn, setLinkedIn] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError]     = useState('')
+  const [loading, setLoading]   = useState(false)
+  const [error, setError]       = useState('')
 
-async function handleSubmit(e: React.FormEvent) {
-  e.preventDefault()
-  if (!file) { setError('Please upload your resume.'); return }
-  setLoading(true)
-  setError('')
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!file) { setError('Please upload your resume.'); return }
+    setLoading(true)
+    setError('')
 
-  try {
-    // 1. Upload resume — this saves resumeUrl to user automatically
-    const fd = new FormData()
-    fd.append('file', file)
-    const uploadRes = await fetch('/api/upload', { method: 'POST', body: fd })
-    const uploadData = await uploadRes.json()
-    if (!uploadRes.ok) throw new Error(uploadData.error)
+    try {
+      // 1. Upload resume
+      const fd = new FormData()
+      fd.append('file', file)
+      const uploadRes = await fetch('/api/upload', { method: 'POST', body: fd })
+      const uploadData = await uploadRes.json()
+      if (!uploadRes.ok) throw new Error(uploadData.error)
 
-    // 2. Save phone + LinkedIn separately (do NOT include resumeUrl here
-    //    as upload already saved it — sending it again causes no harm but
-    //    let's be explicit)
-    const profileRes = await fetch('/api/profile', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        phone:     phone    || undefined,
-        linkedIn:  linkedIn || undefined,
-        resumeUrl: uploadData.url,   // explicitly pass it to be safe
-      }),
-    })
+      // 2. Save LinkedIn + resumeUrl to profile
+      const profileRes = await fetch('/api/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          linkedIn:  linkedIn || undefined,
+          resumeUrl: uploadData.url,
+        }),
+      })
 
-    const profileData = await profileRes.json()
-    console.log('Profile after save:', profileData)
+      const profileData = await profileRes.json()
+      if (!profileRes.ok) throw new Error(profileData.error)
 
-    if (!profileRes.ok) throw new Error(profileData.error)
-
-    onComplete(uploadData.url)
-  } catch (err: any) {
-    setError(err.message || 'Something went wrong.')
-  } finally {
-    setLoading(false)
+      onComplete(uploadData.url)
+    } catch (err: any) {
+      setError(err.message || 'Something went wrong.')
+    } finally {
+      setLoading(false)
+    }
   }
-}
 
   return (
     <div className={styles.overlay}>
@@ -95,8 +88,13 @@ async function handleSubmit(e: React.FormEvent) {
                     <polyline points="14 2 14 8 20 8"/>
                   </svg>
                   <span>{file.name}</span>
-                  <button type="button" className={styles.removeBtn}
-                    onClick={e => { e.stopPropagation(); setFile(null) }}>✕</button>
+                  <button
+                    type="button"
+                    className={styles.removeBtn}
+                    onClick={e => { e.stopPropagation(); setFile(null) }}
+                  >
+                    ✕
+                  </button>
                 </div>
               ) : (
                 <>
@@ -112,20 +110,9 @@ async function handleSubmit(e: React.FormEvent) {
             </div>
           </div>
 
-          {/* Phone */}
-          <div className={styles.field}>
-            <label className={styles.label}>Phone number</label>
-            <input
-              type="tel"
-              value={phone}
-              onChange={e => setPhone(e.target.value)}
-              placeholder="+971 50 123 4567"
-            />
-          </div>
-
           {/* LinkedIn */}
           <div className={styles.field}>
-            <label className={styles.label}>LinkedIn / Portfolio URL</label>
+            <label className={styles.label}>LinkedIn / Portfolio URL (Optional)</label>
             <input
               type="url"
               value={linkedIn}

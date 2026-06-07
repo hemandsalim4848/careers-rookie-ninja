@@ -127,15 +127,19 @@ export default function ApplyPage() {
             <div className={styles.autoFillSection}>
               <p className={styles.autoFillLabel}>Your details</p>
               <div className={styles.autoFillGrid}>
-                <div className={styles.autoFillField}>
-                  <label className={styles.label}>Full name</label>
-                  <input value={session?.user?.name ?? ''} readOnly className={styles.readOnly} />
-                </div>
-                <div className={styles.autoFillField}>
-                  <label className={styles.label}>Email</label>
-                  <input value={session?.user?.email ?? ''} readOnly className={styles.readOnly} />
-                </div>
-              </div>
+  <div className={styles.autoFillField}>
+    <label className={styles.label}>Full name</label>
+    <input value={session?.user?.name ?? ''} readOnly className={styles.readOnly} />
+  </div>
+  <div className={styles.autoFillField}>
+    <label className={styles.label}>Email</label>
+    <input value={session?.user?.email ?? ''} readOnly className={styles.readOnly} />
+  </div>
+  <div className={styles.autoFillField}>
+    <label className={styles.label}>Phone number</label>
+    <input value={profile?.phone ?? 'Not provided'} readOnly className={styles.readOnly} />
+  </div>
+</div>
             </div>
 
             {/* ── RESUME ── */}
