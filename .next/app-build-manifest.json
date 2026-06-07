@@ -53,6 +53,12 @@
       "static/chunks/main-app.js",
       "static/css/app/dashboard/hr/page.css",
       "static/chunks/app/dashboard/hr/page.js"
+    ],
+    "/dashboard/hr/jobs/new/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/dashboard/hr/jobs/new/page.css",
+      "static/chunks/app/dashboard/hr/jobs/new/page.js"
     ]
   }
 }

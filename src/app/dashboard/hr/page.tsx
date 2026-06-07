@@ -1,5 +1,7 @@
 'use client'
 
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
@@ -16,6 +18,7 @@ const STATUS_COLORS = {
 }
 
 const CHART_COLORS = ['#15A7DC', '#34D399', '#FBBF24', '#F87171', '#A78BFA', '#FB923C']
+
 
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null
@@ -39,9 +42,19 @@ function CustomTooltip({ active, payload, label }: any) {
 }
 
 export default function HROverview() {
+  const { data: session, status } = useSession()
+  const router = useRouter()
   const [jobs, setJobs]   = useState<any[]>([])
   const [apps, setApps]   = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/auth/login')
+    } else if (status === 'authenticated' && (session?.user as any)?.role !== 'hr') {
+      router.push('/')
+    }
+  }, [status, session])
 
   useEffect(() => {
     Promise.all([
@@ -53,6 +66,11 @@ export default function HROverview() {
       setLoading(false)
     })
   }, [])
+
+  if (status === 'loading' || !session) return (
+    <div style={{ padding: 80, textAlign: 'center', color: 'var(--text-muted)' }}>Loading…</div>
+  )
+
 
   // ── Stat cards ──
   const stats = [

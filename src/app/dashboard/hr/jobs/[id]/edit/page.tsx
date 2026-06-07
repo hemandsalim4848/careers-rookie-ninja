@@ -1,12 +1,14 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useSession } from 'next-auth/react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import styles from '../../../jobs/new/jobform.module.css'
 
 export default function EditJobPage() {
   const { id } = useParams<{ id: string }>()
+  const { data: session, status } = useSession()
   const router  = useRouter()
 
   const [loading, setLoading]   = useState(false)
@@ -16,35 +18,50 @@ export default function EditJobPage() {
   const [form, setForm] = useState({
     title: '', department: '', location: '', type: 'Full-time',
     remote: false, currency: 'AED', salaryMin: '', salaryMax: '',
-    description: '', responsibilities: '', requirements: '',targetMarkets: '', niceToHave: '',
+    description: '', responsibilities: '', requirements: '', targetMarkets: '', niceToHave: '',
   })
 
-  const set = (k: string, v: any) => setForm(f => ({ ...f, [k]: v }))
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/auth/login')
+    } else if (status === 'authenticated' && (session?.user as any)?.role !== 'hr') {
+      router.push('/')
+    }
+  }, [status, session])
 
   useEffect(() => {
     fetch(`/api/jobs/${id}`)
       .then(r => r.json())
       .then(job => {
         setForm({
-          title:            job.title            ?? '',
-          department:       job.department        ?? '',
-          location:         job.location          ?? '',
-          type:             job.type              ?? 'Full-time',
-          remote:           job.remote            ?? false,
-          currency:         job.currency          ?? 'AED',
+          title:            job.title               ?? '',
+          department:       job.department           ?? '',
+          location:         job.location             ?? '',
+          type:             job.type                 ?? 'Full-time',
+          remote:           job.remote               ?? false,
+          currency:         job.currency             ?? 'AED',
           salaryMin:        job.salaryMin?.toString() ?? '',
           salaryMax:        job.salaryMax?.toString() ?? '',
-          description:      job.description       ?? '',
-          responsibilities: (job.responsibilities ?? []).join('\n'),
-          requirements:     (job.requirements     ?? []).join('\n'),
-           targetMarkets:    job.targetMarkets      ?? '',
-          niceToHave:       (job.niceToHave       ?? []).join('\n'),
-         
+          description:      job.description          ?? '',
+          responsibilities: (job.responsibilities    ?? []).join('\n'),
+          requirements:     (job.requirements        ?? []).join('\n'),
+          targetMarkets:    job.targetMarkets         ?? '',
+          niceToHave:       (job.niceToHave          ?? []).join('\n'),
         })
         setFetching(false)
       })
       .catch(() => setFetching(false))
   }, [id])
+
+  if (status === 'loading' || !session) return (
+    <div style={{ padding: 80, textAlign: 'center', color: 'var(--text-muted)' }}>Loading…</div>
+  )
+
+  if (fetching) return (
+    <div style={{ padding: 80, textAlign: 'center', color: 'var(--text-muted)' }}>Loading…</div>
+  )
+
+  const set = (k: string, v: any) => setForm(f => ({ ...f, [k]: v }))
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -59,7 +76,6 @@ export default function EditJobPage() {
       requirements:     form.requirements.split('\n').map(s => s.trim()).filter(Boolean),
       targetMarkets:    form.targetMarkets || undefined,
       niceToHave:       form.niceToHave.split('\n').map(s => s.trim()).filter(Boolean),
-      
     }
 
     const res = await fetch(`/api/jobs/${id}`, {
@@ -77,10 +93,6 @@ export default function EditJobPage() {
       setError(data.error || 'Failed to update job.')
     }
   }
-
-  if (fetching) return (
-    <div style={{ padding: 80, textAlign: 'center', color: 'var(--text-muted)' }}>Loading…</div>
-  )
 
   return (
     <div className={styles.page}>
@@ -171,8 +183,6 @@ export default function EditJobPage() {
               <label className={styles.label}>Nice to have <span className={styles.hint}>(one per line, optional)</span></label>
               <textarea rows={3} value={form.niceToHave} onChange={e => set('niceToHave', e.target.value)} />
             </div>
-
-            
 
             {error && <p className={styles.error}>{error}</p>}
 

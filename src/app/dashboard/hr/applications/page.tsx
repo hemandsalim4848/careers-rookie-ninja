@@ -1,5 +1,7 @@
 'use client'
 
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import styles from './applications.module.css'
@@ -26,6 +28,8 @@ function Detail({ label, value }: { label: string; value?: string }) {
 }
 
 function ApplicationsContent() {
+    const { data: session, status } = useSession()
+ const router = useRouter()
   const searchParams            = useSearchParams()
   const jobId                   = searchParams.get('jobId') ?? ''
   const [apps, setApps]         = useState<any[]>([])
@@ -35,17 +39,36 @@ function ApplicationsContent() {
   const [page, setPage]         = useState(1)
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
+
+useEffect(() => {
+  if (status === 'unauthenticated') {
+    router.push('/auth/login')
+  } else if (status === 'authenticated' && (session?.user as any)?.role !== 'hr') {
+    router.push('/')
+  }
+}, [status, session])
+
+if (status === 'loading' || !session) return (
+  <div style={{ padding: 80, textAlign: 'center', color: 'var(--text-muted)' }}>Loading…</div>
+)
+
   useEffect(() => {
     fetch('/api/jobs?status=all').then(r => r.json()).then(setJobs)
   }, [])
 
-  useEffect(() => {
-    const url = filter ? `/api/applications?jobId=${filter}` : '/api/applications'
-    setLoading(true)
-    setPage(1)
-    setExpandedId(null)
-    fetch(url).then(r => r.json()).then(data => { setApps(data); setLoading(false) })
-  }, [filter])
+useEffect(() => {
+  const url = filter ? `/api/applications?jobId=${filter}` : '/api/applications'
+  setLoading(true)
+  setPage(1)
+  setExpandedId(null)
+  fetch(url)
+    .then(r => r.json())
+    .then(data => {
+      setApps(Array.isArray(data) ? data : [])
+      setLoading(false)
+    })
+    .catch(() => { setApps([]); setLoading(false) })
+}, [filter])
 
   async function updateStatus(id: string, status: string) {
     await fetch(`/api/applications/${id}`, {

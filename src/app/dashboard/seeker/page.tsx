@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import ResumeSetupModal from '@/components/ResumeSetupModal'
 import styles from './seeker.module.css'
 
@@ -15,7 +15,7 @@ const STATUS_CONFIG = {
 }
 
 export default function SeekerDashboard() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const router = useRouter()
 
   const [applications, setApplications] = useState<any[]>([])
@@ -27,56 +27,55 @@ export default function SeekerDashboard() {
   const [resumeError, setResumeError]   = useState('')
   const [resumeSuccess, setResumeSuccess] = useState(false)
 
-  
-    useEffect(() => {
-    if (session && (session.user as any)?.role === 'hr') {
+  // Auth guard
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/auth/login')
+    } else if (status === 'authenticated' && (session?.user as any)?.role === 'hr') {
       router.push('/dashboard/hr')
     }
+  }, [status, session])
+
+  useEffect(() => {
+    if (!session) return
+    const isHR = (session.user as any)?.role === 'hr'
+
+    fetch('/api/profile')
+      .then(r => r.json())
+      .then(prof => {
+        setProfile(prof)
+        if (!prof.resumeUrl && !isHR) {
+          setShowModal(true)
+          setLoading(false)
+        } else {
+          fetch('/api/applications')
+            .then(r => r.json())
+            .then(apps => {
+              setApplications(Array.isArray(apps) ? apps : [])
+              setLoading(false)
+            })
+            .catch(() => setLoading(false))
+        }
+      })
+      .catch(() => setLoading(false))
   }, [session])
 
-useEffect(() => {
-  if (!session) return
-  const isHR = (session.user as any)?.role === 'hr'
+  function handleModalComplete(url: string) {
+    setProfile((p: any) => ({ ...p, resumeUrl: url }))
+    setShowModal(false)
+    fetch('/api/applications')
+      .then(r => r.json())
+      .then(apps => setApplications(Array.isArray(apps) ? apps : []))
+      .catch(() => {})
+  }
 
-  fetch('/api/profile')
-    .then(r => r.json())
-    .then(prof => {
-      setProfile(prof)
-      // Never show resume modal for HR
-      if (!prof.resumeUrl && !isHR) {
-        setShowModal(true)
-        setLoading(false)
-      } else {
-        fetch('/api/applications')
-          .then(r => r.json())
-          .then(apps => {
-            setApplications(Array.isArray(apps) ? apps : [])
-            setLoading(false)
-          })
-          .catch(() => setLoading(false))
-      }
-    })
-    .catch(() => setLoading(false))
-}, [session])
-
-function handleModalComplete(url: string) {
-  setProfile((p: any) => ({ ...p, resumeUrl: url }))
-  setShowModal(false)
-  // Stay on dashboard and fetch applications
-  fetch('/api/applications')
-    .then(r => r.json())
-    .then(apps => setApplications(Array.isArray(apps) ? apps : []))
-    .catch(() => {})
-}
-
-function handleModalSkip() {
-  setShowModal(false)
-  // Still fetch applications even without resume
-  fetch('/api/applications')
-    .then(r => r.json())
-    .then(apps => setApplications(Array.isArray(apps) ? apps : []))
-    .catch(() => {})
-}
+  function handleModalSkip() {
+    setShowModal(false)
+    fetch('/api/applications')
+      .then(r => r.json())
+      .then(apps => setApplications(Array.isArray(apps) ? apps : []))
+      .catch(() => {})
+  }
 
   async function handleResumeUpdate(e: React.FormEvent) {
     e.preventDefault()
@@ -102,6 +101,10 @@ function handleModalSkip() {
       setUpdatingResume(false)
     }
   }
+
+  if (status === 'loading' || !session) return (
+    <div style={{ padding: 80, textAlign: 'center', color: 'var(--text-muted)' }}>Loading…</div>
+  )
 
   return (
     <>

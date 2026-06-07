@@ -1,12 +1,29 @@
 'use client'
 
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import styles from './jobs.module.css'
 
+
 export default function HRJobsPage() {
+  const { data: session, status } = useSession()
+const router = useRouter()
   const [jobs, setJobs]     = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+  if (status === 'unauthenticated') {
+    router.push('/auth/login')
+  } else if (status === 'authenticated' && (session?.user as any)?.role !== 'hr') {
+    router.push('/')
+  }
+}, [status, session])
+
+if (status === 'loading' || !session) return (
+  <div style={{ padding: 80, textAlign: 'center', color: 'var(--text-muted)' }}>Loading…</div>
+)
 
   useEffect(() => {
     fetch('/api/jobs?status=all')

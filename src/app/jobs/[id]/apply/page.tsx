@@ -8,7 +8,7 @@ import styles from './apply.module.css'
 
 export default function ApplyPage() {
   const { id } = useParams<{ id: string }>()
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const router = useRouter()
 
   const [profile, setProfile]       = useState<any>(null)
@@ -32,7 +32,15 @@ export default function ApplyPage() {
   const [emirate,           setEmirate]           = useState('')
   const [uaeDrivingLicense, setUaeDrivingLicense] = useState('')
 
+  // Auth guard
   useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push(`/auth/login?redirect=/jobs/${id}/apply`)
+    }
+  }, [status])
+
+  useEffect(() => {
+    if (!session) return
     Promise.all([
       fetch('/api/profile').then(r => r.json()),
       fetch(`/api/jobs/${id}`).then(r => r.json()),
@@ -41,7 +49,7 @@ export default function ApplyPage() {
       setJob(j)
       setLoading(false)
     }).catch(() => setLoading(false))
-  }, [id])
+  }, [id, session])
 
   const isDubai = job?.location === 'Dubai'
 
@@ -83,6 +91,10 @@ export default function ApplyPage() {
       setSubmitted(true)
     }
   }
+
+  if (status === 'loading' || !session) return (
+    <div style={{ padding: 80, textAlign: 'center', color: 'var(--text-muted)' }}>Loading…</div>
+  )
 
   if (loading) return (
     <div style={{ padding: 80, textAlign: 'center', color: 'var(--text-muted)' }}>Loading…</div>

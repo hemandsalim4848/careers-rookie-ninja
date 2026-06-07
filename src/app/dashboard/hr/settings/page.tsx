@@ -1,15 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import styles from './settings.module.css'
 
 export default function HRSettingsPage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
+  const router = useRouter()
 
-  const [name, setName]               = useState(session?.user?.name ?? '')
-  const [email, setEmail]             = useState(session?.user?.email ?? '')
+  const [name, setName]               = useState('')
+  const [email, setEmail]             = useState('')
   const [currentPassword, setCurrent] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirm] = useState('')
@@ -21,6 +23,26 @@ export default function HRSettingsPage() {
   const [passLoading, setPassLoading] = useState(false)
   const [passSuccess, setPassSuccess] = useState('')
   const [passError, setPassError]     = useState('')
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/auth/login')
+    } else if (status === 'authenticated' && (session?.user as any)?.role !== 'hr') {
+      router.push('/')
+    }
+  }, [status, session])
+
+  // Set name and email once session loads
+  useEffect(() => {
+    if (session?.user) {
+      setName(session.user.name ?? '')
+      setEmail(session.user.email ?? '')
+    }
+  }, [session])
+
+  if (status === 'loading' || !session) return (
+    <div style={{ padding: 80, textAlign: 'center', color: 'var(--text-muted)' }}>Loading…</div>
+  )
 
   async function handleProfileUpdate(e: React.FormEvent) {
     e.preventDefault()
@@ -74,11 +96,10 @@ export default function HRSettingsPage() {
     if (!res.ok) {
       setPassError(data.error || 'Failed to update password.')
     } else {
-      setPassSuccess('Password updated successfully. Please sign in again.')
+      setPassSuccess('Password updated successfully. Signing you out…')
       setCurrent('')
       setNewPassword('')
       setConfirm('')
-      // Sign out after password change
       setTimeout(() => signOut({ callbackUrl: '/auth/login' }), 2000)
     }
   }
@@ -126,11 +147,7 @@ export default function HRSettingsPage() {
               {profileError   && <p className={styles.error}>{profileError}</p>}
               {profileSuccess && <p className={styles.success}>{profileSuccess}</p>}
 
-              <button
-                type="submit"
-                className="btn-primary"
-                disabled={profileLoading}
-              >
+              <button type="submit" className="btn-primary" disabled={profileLoading}>
                 {profileLoading ? 'Saving…' : 'Save changes'}
               </button>
             </form>
@@ -178,11 +195,7 @@ export default function HRSettingsPage() {
               {passError   && <p className={styles.error}>{passError}</p>}
               {passSuccess && <p className={styles.success}>{passSuccess}</p>}
 
-              <button
-                type="submit"
-                className="btn-primary"
-                disabled={passLoading}
-              >
+              <button type="submit" className="btn-primary" disabled={passLoading}>
                 {passLoading ? 'Updating…' : 'Update password'}
               </button>
             </form>
