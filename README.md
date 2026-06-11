@@ -1,112 +1,137 @@
 # careers.rookie-ninja.com
 
-A Next.js 14 careers platform for Rookie Ninja — built with MongoDB + NextAuth.
+## Project context
+
+A Next.js 14 careers platform for Rookie Ninja, a technology distribution company in Dubai/UAE.
+
+**Live site:** https://careers-rookie-ninja.vercel.app  
+**Repo:** https://github.com/hemandsalim4848/careers-rookie-ninja
+
+---
+
+## Key decisions
+
+- **Auth:** NextAuth JWT, HR accounts created via `scripts/createHR.ts` only (no public HR register)
+- **DB:** MongoDB Atlas (prod) / localhost (dev)
+- **File storage:** Vercel Blob (resumes, PDF/DOC/DOCX, max 5MB)
+- **Email:** Nodemailer + Resend SMTP — domain unverified, all emails currently go to `HR_EMAIL`
+- **Rate limiting:** Upstash Redis
+- **Theme:** Black & white — accent `#000000`, background `#FFFFFF`
+- **Font:** Poppins (all weights)
+
+---
+
+## Roles
+
+| Role | How created | Access |
+|---|---|---|
+| `seeker` | Public register at `/auth/register` | Apply for jobs, view own applications |
+| `hr` | Via `scripts/createHR.ts` only | Full dashboard, manage jobs & applicants |
+
+---
 
 ## Tech stack
 
 | Layer | Tech |
 |---|---|
 | Framework | Next.js 14 (App Router) |
-| Auth | NextAuth.js v4 (Credentials provider) |
+| Auth | NextAuth.js v4 (Credentials + JWT) |
 | Database | MongoDB Atlas + Mongoose |
-| File uploads | AWS S3 (resumes/CVs) |
-| Email | Nodemailer + Resend/SendGrid SMTP |
-| CSV export | json2csv |
-| Forms | react-hook-form + zod |
-| Styling | CSS Modules + custom design system |
-| Fonts | Syne (display) + DM Sans (body) |
-| Accent color | #15A7DC |
+| File uploads | Vercel Blob |
+| Email | Nodemailer + Resend SMTP |
+| Rate limiting | Upstash Redis |
+| Sanitization | Custom regex sanitizer (`src/lib/sanitize.ts`) |
+| Styling | CSS Modules + custom design tokens |
+| Font | Poppins (Google Fonts) |
+| Charts | Recharts (HR analytics dashboard) |
 
 ---
 
-## Getting started
-
-### 1. Install dependencies
-
-```bash
-npm install
-```
-
-### 2. Environment variables
-
-Create `.env.local`:
+## Environment variables
 
 ```env
 # NextAuth
-NEXTAUTH_SECRET=your-random-secret-here
+NEXTAUTH_SECRET=
 NEXTAUTH_URL=http://localhost:3000
 
 # MongoDB
-MONGODB_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/careers-rookie-ninja
+MONGODB_URI=mongodb://localhost:27017/careers-rookie-ninja
 
-# AWS S3 (for resume uploads)
-AWS_ACCESS_KEY_ID=
-AWS_SECRET_ACCESS_KEY=
-AWS_REGION=ap-south-1
-AWS_S3_BUCKET=rookie-ninja-resumes
+# Vercel Blob
+BLOB_READ_WRITE_TOKEN=
 
-# Email (Nodemailer)
+# Email (Resend SMTP)
 SMTP_HOST=smtp.resend.com
 SMTP_PORT=465
 SMTP_USER=resend
-SMTP_PASS=your-resend-api-key
-HR_EMAIL=hr@rookie-ninja.com
+SMTP_PASS=
+HR_EMAIL=
+
+# Upstash Redis
+UPSTASH_REDIS_REST_URL=
+UPSTASH_REDIS_REST_TOKEN=
 ```
-
-### 3. Run in development
-
-```bash
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000).
 
 ---
 
 ## Project structure
 
-```
 src/
 ├── app/
-│   ├── page.tsx                        # Job listings (public)
-│   ├── layout.tsx                      # Root layout + Navbar + Footer
-│   ├── globals.css                     # Design tokens & global styles
+│   ├── page.tsx                          # Job listings (public) with filters + pagination
+│   ├── layout.tsx                        # Root layout + Navbar + Footer + AuthProvider
+│   ├── globals.css                       # Design tokens & global styles
 │   ├── auth/
 │   │   ├── login/page.tsx
-│   │   └── register/page.tsx
+│   │   └── register/page.tsx             # Seeker only — phone validation included
 │   ├── jobs/
 │   │   └── [id]/
-│   │       ├── page.tsx                # Job detail
-│   │       └── apply/page.tsx          # Application form (auth required)
+│   │       ├── page.tsx                  # Job detail + already-applied check
+│   │       └── apply/page.tsx            # Application form (auth required)
 │   ├── dashboard/
-│   │   ├── seeker/page.tsx             # Seeker: my applications
+│   │   ├── seeker/page.tsx               # My applications + resume management
 │   │   └── hr/
-│   │       ├── page.tsx                # HR overview
-│   │       ├── jobs/page.tsx           # Post / edit / delete jobs
-│   │       └── applications/page.tsx   # View all applicants
+│   │       ├── page.tsx                  # HR analytics dashboard (Recharts)
+│   │       ├── jobs/page.tsx             # Post / edit / close / delete jobs
+│   │       ├── jobs/new/page.tsx         # New job form
+│   │       ├── jobs/[id]/edit/page.tsx   # Edit job form
+│   │       ├── applications/page.tsx     # Applicants table + drawer + pagination + CSV
+│   │       └── settings/page.tsx         # HR account settings
 │   └── api/
 │       ├── auth/
-│       │   ├── [...nextauth]/route.ts  # NextAuth handler
-│       │   └── register/route.ts       # POST — create account
-│       ├── jobs/route.ts               # GET (public), POST/PATCH/DELETE (HR)
-│       ├── applications/
-│       │   ├── route.ts                # POST (seeker), GET (HR)
-│       │   └── export/route.ts         # CSV download (HR)
-│       └── upload/route.ts             # Resume upload → S3
+│       │   ├── [...nextauth]/route.ts
+│       │   └── register/route.ts
+│       ├── jobs/route.ts
+│       ├── jobs/[id]/route.ts
+│       ├── applications/route.ts
+│       ├── applications/[id]/route.ts
+│       ├── applications/export/route.ts  # CSV export
+│       ├── upload/route.ts               # Resume → Vercel Blob
+│       ├── profile/route.ts              # GET/PATCH seeker profile
+│       └── hr/settings/route.ts          # HR name/email/password update
 ├── components/
-│   ├── Navbar.tsx / .module.css
-│   ├── Footer.tsx / .module.css
-│   └── JobCard.tsx / .module.css
+│   ├── Navbar.tsx                        # Sticky, role-aware, hamburger on mobile
+│   ├── Footer.tsx
+│   ├── JobCard.tsx
+│   ├── AuthProvider.tsx                  # SessionProvider wrapper
+│   └── ResumeSetupModal.tsx              # First-login resume upload popup
 ├── lib/
-│   ├── mongodb.ts                      # Connection singleton
-│   ├── auth.ts                         # NextAuth config
-│   ├── mailer.ts                       # Nodemailer helpers
-│   └── mockData.ts                     # Dev seed data
-└── models/
-    ├── User.ts
-    ├── Job.ts
-    └── Application.ts
-```
+│   ├── mongodb.ts                        # Connection singleton
+│   ├── auth.ts                           # NextAuth config + role callbacks
+│   ├── mailer.ts                         # notifyHR + notifyApplicant
+│   ├── ratelimit.ts                      # Upstash rate limiters
+│   └── sanitize.ts                       # XSS sanitization helpers
+├── models/
+│   ├── User.ts                           # name, email, password, role, phone, linkedIn, resumeUrl
+│   ├── Job.ts                            # title, dept, location, type, remote, salary, targetMarkets...
+│   └── Application.ts                    # job, seeker, resumeUrl, coverLetter, experience, UAE fields...
+├── types/
+│   └── next-auth.d.ts                    # Session type extensions
+├── middleware.ts                          # Route protection for /dashboard & /apply
+└── scripts/
+└── createHR.ts                       # CLI tool to create HR accounts
+
+
 
 ---
 
@@ -114,33 +139,53 @@ src/
 
 | Route | Access | Description |
 |---|---|---|
-| `/` | Public | Job listings with filters |
-| `/jobs/[id]` | Public | Job detail + apply CTA |
-| `/jobs/[id]/apply` | Seeker (auth) | Application form |
+| `/` | Public | Job listings — search, filters (dept, type, location, remote), pagination |
+| `/jobs/[id]` | Public | Job detail — full description, apply CTA, already-applied badge |
+| `/jobs/[id]/apply` | Seeker | Application form — auto-fill name/email, UAE fields for Dubai jobs |
 | `/auth/login` | Public | Login |
-| `/auth/register` | Public | Register (seeker or HR) |
-| `/dashboard/seeker` | Seeker (auth) | View own applications |
-| `/dashboard/hr` | HR (auth) | HR overview stats |
-| `/dashboard/hr/jobs` | HR (auth) | Post / edit / delete jobs |
-| `/dashboard/hr/applications` | HR (auth) | All applicants per job |
+| `/auth/register` | Public | Register as seeker — phone validation included |
+| `/dashboard/seeker` | Seeker | My applications, resume upload/update, status stats |
+| `/dashboard/hr` | HR | Analytics — charts, stats, quick links |
+| `/dashboard/hr/jobs` | HR | Manage job listings |
+| `/dashboard/hr/jobs/new` | HR | Post new job |
+| `/dashboard/hr/jobs/[id]/edit` | HR | Edit job |
+| `/dashboard/hr/applications` | HR | Applicants table — expandable drawer, status update, CSV export |
+| `/dashboard/hr/settings` | HR | Update name, email, password |
 
 ---
 
-## Design system
+## Job locations
+- Dubai
+- India
 
-- **Accent:** `#15A7DC`
-- **Background:** `#080E17` (base) → `#0D1520` → `#111C2A`
-- **Display font:** Syne (Google Fonts)
-- **Body font:** DM Sans (Google Fonts)
-- **Border radius:** 6 / 10 / 16 / 24px scale
+UAE-specific fields (`basedInUAE`, `emirate`, `uaeDrivingLicense`) only appear in the apply form when `job.location === 'Dubai'`.
 
 ---
 
-## Next steps (backend)
+## Creating an HR account
 
-1. **MongoDB models** — `User`, `Job`, `Application` in `src/models/`
-2. **NextAuth config** — credentials provider + role-based callbacks
-3. **API routes** — jobs CRUD, application submit, CSV export
-4. **Apply form** — resume upload to S3 + form submission
-5. **HR dashboard** — applicant table with status update + email notification
-6. **Middleware** — protect `/dashboard/hr/*` and `/api/jobs` (POST/PATCH/DELETE)
+```bash
+# Point .env.local to Atlas URI first, then:
+npx ts-node scripts/createHR.ts "Name" email@example.com Password123
+# Switch .env.local back to localhost after
+```
+
+---
+
+## Running locally
+
+```bash
+npm install
+npm run dev
+```
+
+---
+
+## Pending / future work
+
+- SEO metadata per job page (waiting for `careers.rookie-ninja.com` domain)
+- Custom domain setup
+- Resend domain verification → enable emails to real recipients
+- HR notes on applicants
+- Social share buttons on job listings
+- Seeker application confirmation email
