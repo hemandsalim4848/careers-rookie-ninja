@@ -18,6 +18,7 @@ export interface IJob extends Document {
   postedBy: mongoose.Types.ObjectId
   createdAt: Date
   updatedAt: Date
+  slug?: string
 }
 
 const JobSchema = new Schema<IJob>(
@@ -37,6 +38,7 @@ const JobSchema = new Schema<IJob>(
     niceToHave:       [{ type: String }],
     status:           { type: String, enum: ['open', 'closed'], default: 'open' },
     postedBy:         { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    slug: { type: String, unique: true, sparse: true },
   },
   { timestamps: true }
 )

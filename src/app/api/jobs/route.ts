@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { connectDB } from '@/lib/mongodb'
 import Job from '@/models/Job'
 import { sanitizeText, sanitizeRichText } from '@/lib/sanitize'
+import { generateSlug } from '@/lib/slug'
 
 // GET — public, returns all open jobs
 export async function GET(req: NextRequest) {
@@ -40,5 +41,10 @@ export async function POST(req: NextRequest) {
   }
 
   const job = await Job.create({ ...sanitizedBody, postedBy: (session.user as any).id })
+
+  // Generate slug after creation (need the _id)
+  job.slug = generateSlug(job.title, job._id.toString())
+  await job.save()
+
   return NextResponse.json(job, { status: 201 })
 }

@@ -92,7 +92,7 @@ if (status === 'loading' || !session) return (
     </span>
     <div className={styles.actions}>
       {job.status === 'open' && (
-        <Link href={`/dashboard/hr/jobs/${job._id}/edit`} className="btn-ghost" style={{ fontSize: 12, padding: '6px 12px' }}>Edit</Link>
+        <Link href={`/dashboard/hr/jobs/${job.slug || job._id}/edit`} className="btn-ghost" style={{ fontSize: 12, padding: '6px 12px' }}>Edit</Link>
       )}
       <button
         className="btn-ghost"
@@ -101,8 +101,7 @@ if (status === 'loading' || !session) return (
       >
         {job.status === 'open' ? 'Close' : 'Reopen'}
       </button>
-      <Link
-        href={`/dashboard/hr/applications?jobId=${job._id}`}
+      <Link href={`/dashboard/hr/applications?jobId=${job._id}`}
         className="btn-ghost"
         style={{ fontSize: 12, padding: '6px 12px' }}
       >

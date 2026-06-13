@@ -4,10 +4,15 @@ import { authOptions } from '@/lib/auth'
 import { connectDB } from '@/lib/mongodb'
 import Job from '@/models/Job'
 import { sanitizeText, sanitizeRichText } from '@/lib/sanitize'
+import { generateSlug } from '@/lib/slug'
 
 export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
   await connectDB()
-  const job = await Job.findById(params.id).lean()
+
+  // Try slug first, then fall back to MongoDB ID
+  let job = await Job.findOne({ slug: params.id }).lean()
+  if (!job) job = await Job.findById(params.id).lean()
+
   if (!job) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   return NextResponse.json(job)
 }
@@ -21,6 +26,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   await connectDB()
   const body = await req.json()
 
+  // Find by slug or ID
+  let job = await Job.findOne({ slug: params.id })
+  if (!job) job = await Job.findById(params.id)
+  if (!job) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
   const sanitizedBody = {
     ...body,
     ...(body.title        && { title:        sanitizeText(body.title) }),
@@ -33,14 +43,18 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     ...(body.requirements && {
       requirements: body.requirements.map((r: string) => sanitizeText(r))
     }),
-    ...(body.niceToHave   && {
+    ...(body.niceToHave && {
       niceToHave: body.niceToHave.map((r: string) => sanitizeText(r))
     }),
   }
 
-  const job = await Job.findByIdAndUpdate(params.id, sanitizedBody, { new: true })
-  if (!job) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  return NextResponse.json(job)
+  // If title changed, regenerate slug
+  if (body.title && body.title !== job.title) {
+    sanitizedBody.slug = generateSlug(sanitizedBody.title, job._id.toString())
+  }
+
+  const updated = await Job.findByIdAndUpdate(job._id, sanitizedBody, { new: true })
+  return NextResponse.json(updated)
 }
 
 export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
@@ -50,6 +64,12 @@ export async function DELETE(_: NextRequest, { params }: { params: { id: string 
   }
 
   await connectDB()
-  await Job.findByIdAndDelete(params.id)
+
+  // Find by slug or ID
+  let job = await Job.findOne({ slug: params.id })
+  if (!job) job = await Job.findById(params.id)
+  if (!job) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  await Job.findByIdAndDelete(job._id)
   return NextResponse.json({ success: true })
 }

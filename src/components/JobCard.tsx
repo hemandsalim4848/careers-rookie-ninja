@@ -3,6 +3,7 @@ import styles from './JobCard.module.css'
 
 interface JobCardProps {
   _id: string
+  slug?: string  
   title: string
   department: string
   location: string
@@ -47,13 +48,13 @@ function timeAgo(date: string) {
 }
 
 export default function JobCard({
-  _id, title, department, location, type, remote,
+  _id, slug, title, department, location, type, remote,
   salaryMin, salaryMax, currency, postedAt, isNew,
 }: JobCardProps) {
   const salary = formatSalary(salaryMin, salaryMax, currency)
 
   return (
-    <Link href={`/jobs/${_id}`} className={styles.card}>
+    <Link href={`/jobs/${slug || _id}`} className={styles.card}>
       {/* Top row */}
       <div className={styles.header}>
         <div className={styles.dept}>{department}</div>

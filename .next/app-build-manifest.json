@@ -12,58 +12,11 @@
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
     ],
-    "/auth/login/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/css/app/auth/login/page.css",
-      "static/chunks/app/auth/login/page.js"
-    ],
-    "/auth/register/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/css/app/auth/register/page.css",
-      "static/chunks/app/auth/register/page.js"
-    ],
-    "/dashboard/seeker/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/css/app/dashboard/seeker/page.css",
-      "static/chunks/app/dashboard/seeker/page.js"
-    ],
     "/jobs/[id]/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/css/app/jobs/[id]/page.css",
       "static/chunks/app/jobs/[id]/page.js"
-    ],
-    "/jobs/[id]/apply/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/css/app/jobs/[id]/apply/page.css",
-      "static/chunks/app/jobs/[id]/apply/page.js"
-    ],
-    "/dashboard/hr/applications/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/css/app/dashboard/hr/applications/page.css",
-      "static/chunks/app/dashboard/hr/applications/page.js"
-    ],
-    "/dashboard/hr/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/css/app/dashboard/hr/page.css",
-      "static/chunks/app/dashboard/hr/page.js"
-    ],
-    "/dashboard/hr/jobs/new/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/css/app/dashboard/hr/jobs/new/page.css",
-      "static/chunks/app/dashboard/hr/jobs/new/page.js"
-    ],
-    "/_not-found/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/_not-found/page.js"
     ]
   }
 }
