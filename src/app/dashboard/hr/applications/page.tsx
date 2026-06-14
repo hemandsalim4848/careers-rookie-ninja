@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState, Suspense, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
 import styles from './applications.module.css'
 
@@ -30,14 +30,15 @@ function Detail({ label, value }: { label: string; value?: string }) {
 function ApplicationsContent() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const searchParams            = useSearchParams()
-  const jobId                   = searchParams.get('jobId') ?? ''
-  const [apps, setApps]         = useState<any[]>([])
-  const [jobs, setJobs]         = useState<any[]>([])
-  const [filter, setFilter]     = useState(jobId)
+  const searchParams        = useSearchParams()
+  const jobId               = searchParams.get('jobId') ?? ''
+  const [apps, setApps]     = useState<any[]>([])
+  const [jobs, setJobs]     = useState<any[]>([])
+  const [filter, setFilter] = useState(jobId)
   const [loading, setLoading]   = useState(true)
   const [page, setPage]         = useState(1)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [search, setSearch]     = useState('')
 
   // Auth guard
   useEffect(() => {
@@ -66,10 +67,27 @@ function ApplicationsContent() {
       .catch(() => { setApps([]); setLoading(false) })
   }, [filter])
 
+  // Reset page when search changes
+  useEffect(() => { setPage(1) }, [search])
+
   // All hooks above — safe to return early now
   if (status === 'loading' || !session) return (
     <div style={{ padding: 80, textAlign: 'center', color: 'var(--text-muted)' }}>Loading…</div>
   )
+
+  // Filter by search
+  const filtered = useMemo(() => {
+    if (!search.trim()) return apps
+    const q = search.toLowerCase()
+    return apps.filter(app =>
+      app.seeker?.name?.toLowerCase().includes(q) ||
+      app.seeker?.email?.toLowerCase().includes(q) ||
+      app.job?.title?.toLowerCase().includes(q) ||
+      app.job?.department?.toLowerCase().includes(q) ||
+      app.location?.toLowerCase().includes(q) ||
+      app.phone?.toLowerCase().includes(q)
+    )
+  }, [apps, search])
 
   async function updateStatus(id: string, status: string) {
     await fetch(`/api/applications/${id}`, {
@@ -94,8 +112,8 @@ function ApplicationsContent() {
     window.open(url, '_blank')
   }
 
-  const totalPages = Math.ceil(apps.length / PAGE_SIZE)
-  const paginated  = apps.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
+  const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   return (
     <div className={styles.page}>
@@ -103,13 +121,17 @@ function ApplicationsContent() {
         <div className={styles.header}>
           <div>
             <h1 className={styles.heading}>Applicants</h1>
-            <p className={styles.sub}>{apps.length} application{apps.length !== 1 ? 's' : ''}</p>
+            <p className={styles.sub}>
+              {filtered.length !== apps.length
+                ? `${filtered.length} of ${apps.length} applications`
+                : `${apps.length} application${apps.length !== 1 ? 's' : ''}`}
+            </p>
           </div>
           <div className={styles.headerActions}>
             <select
               className={styles.jobFilter}
               value={filter}
-              onChange={e => setFilter(e.target.value)}
+              onChange={e => { setFilter(e.target.value); setSearch('') }}
             >
               <option value="">All jobs</option>
               {jobs.map(j => (
@@ -127,11 +149,41 @@ function ApplicationsContent() {
           </div>
         </div>
 
+        {/* Search bar */}
+        <div className={styles.searchWrap}>
+          <div className={styles.searchIcon}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+          </div>
+          <input
+            type="text"
+            placeholder="Search by name, email, job title, department, location…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className={styles.searchInput}
+          />
+          {search && (
+            <button className={styles.searchClear} onClick={() => setSearch('')}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                <path d="M18 6 6 18M6 6l12 12"/>
+              </svg>
+            </button>
+          )}
+        </div>
+
         {loading ? (
           <p style={{ color: 'var(--text-muted)' }}>Loading…</p>
-        ) : apps.length === 0 ? (
+        ) : filtered.length === 0 ? (
           <div className={styles.empty}>
-            <p className={styles.emptyTitle}>No applications yet</p>
+            <p className={styles.emptyTitle}>
+              {search ? `No applicants match "${search}"` : 'No applications yet'}
+            </p>
+            {search && (
+              <button className="btn-ghost" style={{ marginTop: 12 }} onClick={() => setSearch('')}>
+                Clear search
+              </button>
+            )}
           </div>
         ) : (
           <>
@@ -281,7 +333,7 @@ function ApplicationsContent() {
                   </svg>
                 </button>
                 <span className={styles.pageInfo}>
-                  Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, apps.length)} of {apps.length}
+                  Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length}
                 </span>
               </div>
             )}

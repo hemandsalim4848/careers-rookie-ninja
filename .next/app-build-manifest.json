@@ -12,11 +12,17 @@
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
     ],
-    "/jobs/[id]/page": [
+    "/auth/login/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/css/app/jobs/[id]/page.css",
-      "static/chunks/app/jobs/[id]/page.js"
+      "static/css/app/auth/login/page.css",
+      "static/chunks/app/auth/login/page.js"
+    ],
+    "/dashboard/hr/applications/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/dashboard/hr/applications/page.css",
+      "static/chunks/app/dashboard/hr/applications/page.js"
     ]
   }
 }
