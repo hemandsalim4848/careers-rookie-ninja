@@ -31,17 +31,22 @@ export default function JobDetailPage() {
       .catch(() => setLoading(false))
   }, [id])
 
-  // Check if seeker already applied
+  // Check if seeker applied within the last 6 months
   useEffect(() => {
-    if (!session || session.user.role !== 'seeker') return
+    if (!session || session.user.role !== 'seeker' || !job) return
     fetch('/api/applications')
       .then(r => r.json())
       .then((apps: any[]) => {
-        const applied = apps.some(a => a.job?._id === id || a.job === id)
+        const sixMonthsAgo = new Date()
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
+        const applied = apps.some(a =>
+          a.job?._id === job._id &&
+          new Date(a.createdAt) >= sixMonthsAgo
+        )
         setAlreadyApplied(applied)
       })
       .catch(() => {})
-  }, [session, id])
+  }, [session, id, job])
 
   if (loading) return (
     <div style={{ padding: 80, textAlign: 'center', color: 'var(--text-muted)' }}>Loading…</div>
