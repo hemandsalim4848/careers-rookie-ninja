@@ -163,6 +163,12 @@
   border-radius: var(--radius-lg);
 }
 
+.hrActions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .applyNote {
   text-align: center;
   font-size: 13px;

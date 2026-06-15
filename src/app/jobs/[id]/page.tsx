@@ -159,7 +159,22 @@ export default function JobDetailPage() {
               <p className={styles.applyCardSub}>{job.department} · {job.location}</p>
               {salary && <p className={styles.salaryDisplay}>{salary}</p>}
 
-              {alreadyApplied ? (
+              {session?.user.role === 'hr' ? (
+                <div className={styles.hrActions}>
+                  <Link href={`/dashboard/hr/jobs/${id}/edit`} className={`btn-primary ${styles.applyBtn}`}>
+                    Edit job
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                  </Link>
+                  <Link href={`/dashboard/hr/applications?jobId=${job._id}`} className={`btn-ghost ${styles.applyBtn}`}>
+                    View applications
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                  </Link>
+                </div>
+              ) : alreadyApplied ? (
                 <div className={styles.appliedBadge}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M20 6 9 17l-5-5"/>
