@@ -57,15 +57,24 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const seekerId = (session.user as any).id
 
-  // Sanitize user inputs
-const sanitizedBody = {
-  ...body,
-  coverLetter: sanitizeText(body.coverLetter ?? ''),
-  phone:       sanitizeText(body.phone ?? ''),
-  linkedIn:    sanitizeText(body.linkedIn ?? ''),
-}
-
-const application = await Application.create({ ...sanitizedBody, seeker: seekerId })
+    const application = await Application.create({
+      job:                body.job,
+      resumeUrl:          body.resumeUrl,
+      coverLetter:        sanitizeText(body.coverLetter ?? ''),
+      phone:              sanitizeText(body.phone ?? ''),
+      linkedIn:           sanitizeText(body.linkedIn ?? ''),
+      location:           sanitizeText(body.location ?? ''),
+      experience:         sanitizeText(body.experience ?? ''),
+      travelWillingness:  sanitizeText(body.travelWillingness ?? ''),
+      education:          sanitizeText(body.education ?? ''),
+      currentSalary:      sanitizeText(body.currentSalary ?? ''),
+      expectedSalary:     sanitizeText(body.expectedSalary ?? ''),
+      noticePeriod:       sanitizeText(body.noticePeriod ?? ''),
+      basedInUAE:         sanitizeText(body.basedInUAE ?? ''),
+      emirate:            sanitizeText(body.emirate ?? ''),
+      uaeDrivingLicense:  sanitizeText(body.uaeDrivingLicense ?? ''),
+      seeker:             seekerId,
+    })
 
     notifyHR({
       applicantName:  session.user?.name ?? 'Someone',

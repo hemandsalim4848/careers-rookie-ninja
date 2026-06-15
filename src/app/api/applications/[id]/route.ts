@@ -14,10 +14,15 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   await connectDB()
   const { status } = await req.json()
 
+  const VALID_STATUSES = ['pending', 'shortlisted', 'hired', 'rejected']
+  if (!status || !VALID_STATUSES.includes(status)) {
+    return NextResponse.json({ error: 'Invalid status value.' }, { status: 400 })
+  }
+
   const application = await Application.findByIdAndUpdate(
     params.id,
     { status },
-    { new: true }
+    { new: true, runValidators: true }
   ).populate('seeker', 'name email').populate('job', 'title')
 
   if (!application) return NextResponse.json({ error: 'Not found' }, { status: 404 })
