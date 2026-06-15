@@ -7,6 +7,7 @@ import { connectDB } from '@/lib/mongodb'
 import User from '@/models/User'
 import { put } from '@vercel/blob'
 import { rateLimiters } from '@/lib/ratelimit'
+import { fileTypeFromBuffer } from 'file-type'
 
 export async function POST(req: NextRequest) {
   try {
@@ -29,26 +30,31 @@ export async function POST(req: NextRequest) {
 
     if (!file) return NextResponse.json({ error: 'No file provided.' }, { status: 400 })
 
-    const allowed = [
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    ]
-    if (!allowed.includes(file.type)) {
-      return NextResponse.json({ error: 'Only PDF and Word files are accepted.' }, { status: 400 })
-    }
-
     if (file.size > 5 * 1024 * 1024) {
       return NextResponse.json({ error: 'File must be under 5MB.' }, { status: 400 })
     }
 
-    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'pdf'
+    const allowedMimes: Record<string, string> = {
+      'application/pdf':                                                      'pdf',
+      'application/msword':                                                   'doc',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+    }
+
+    // Detect real file type from magic bytes — client-reported MIME is untrusted
+    const buffer = Buffer.from(await file.arrayBuffer())
+    const detected = await fileTypeFromBuffer(buffer)
+
+    if (!detected || !(detected.mime in allowedMimes)) {
+      return NextResponse.json({ error: 'Only PDF and Word files are accepted.' }, { status: 400 })
+    }
+
+    const ext = allowedMimes[detected.mime]
     const filename = `resumes/resume_${userId}_${Date.now()}.${ext}`
 
     // Upload to Vercel Blob
-    const blob = await put(filename, file, {
+    const blob = await put(filename, buffer, {
       access: 'public',
-      contentType: file.type,
+      contentType: detected.mime,
     })
 
     console.log('Blob upload success:', blob.url)
