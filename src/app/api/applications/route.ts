@@ -15,8 +15,8 @@ export async function GET(req: NextRequest) {
 
   await connectDB()
   const { searchParams } = new URL(req.url)
-  const role = (session.user as any).role
-  const id   = (session.user as any).id
+  const role = session.user.role
+  const id   = session.user.id
 
   let query: Record<string, any> = {}
 
@@ -39,12 +39,12 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session || (session.user as any).role !== 'seeker') {
+    if (!session || session.user.role !== 'seeker') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Rate limit by user ID
-    const userId = (session.user as any).id
+    const userId = session.user.id
     const { success } = await rateLimiters.applications.limit(userId)
 
     if (!success) {
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
 
     await connectDB()
     const body = await req.json()
-    const seekerId = (session.user as any).id
+    const seekerId = session.user.id
 
     const job = await Job.findById(body.job).lean()
     if (!job) return NextResponse.json({ error: 'Job not found.' }, { status: 404 })

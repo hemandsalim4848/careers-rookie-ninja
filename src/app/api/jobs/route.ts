@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
 
   if (status === 'all') {
     const session = await getServerSession(authOptions)
-    if (!session || (session.user as any).role !== 'hr') {
+    if (!session || session.user.role !== 'hr') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
   }
@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
 // POST — HR only, create a job
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
-  if (!session || (session.user as any).role !== 'hr') {
+  if (!session || session.user.role !== 'hr') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
     niceToHave:       (body.niceToHave ?? []).map((r: string) => sanitizeText(r)),
   }
 
-  const job = await Job.create({ ...sanitizedBody, postedBy: (session.user as any).id })
+  const job = await Job.create({ ...sanitizedBody, postedBy: session.user.id })
 
   // Generate slug after creation (need the _id)
   job.slug = generateSlug(job.title, job._id.toString())

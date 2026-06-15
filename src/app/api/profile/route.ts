@@ -9,7 +9,7 @@ export async function GET() {
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const userId = (session.user as any).id
+  const userId = session.user.id
   console.log('Profile GET - userId:', userId)
 
   await connectDB()
@@ -26,7 +26,7 @@ export async function PATCH(req: NextRequest) {
 
   await connectDB()
   const body = await req.json()
-  const userId = (session.user as any).id
+  const userId = session.user.id
 
   console.log('Profile PATCH - userId:', userId, 'body:', body)
 

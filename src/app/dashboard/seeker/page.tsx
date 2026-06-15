@@ -38,7 +38,7 @@ export default function SeekerDashboard() {
 
   useEffect(() => {
     if (!session) return
-    const isHR = (session.user as any)?.role === 'hr'
+    const isHR = session.user?.role === 'hr'
 
     fetch('/api/profile')
       .then(r => r.json())

@@ -8,7 +8,7 @@ import User from '@/models/User'
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions)
-  if (!session || (session.user as any).role !== 'hr') {
+  if (!session || session.user.role !== 'hr') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

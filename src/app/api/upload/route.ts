@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions)
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const userId = (session.user as any).id
+    const userId = session.user.id
 
     // Rate limit — 5 uploads per hour per user
     const { success } = await rateLimiters.upload.limit(userId)

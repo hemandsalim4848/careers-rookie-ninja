@@ -33,7 +33,7 @@ export default function JobDetailPage() {
 
   // Check if seeker already applied
   useEffect(() => {
-    if (!session || (session.user as any).role !== 'seeker') return
+    if (!session || session.user.role !== 'seeker') return
     fetch('/api/applications')
       .then(r => r.json())
       .then((apps: any[]) => {
