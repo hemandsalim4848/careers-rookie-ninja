@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { connectDB } from '@/lib/mongodb'
 import Application from '@/models/Application'
+import Job from '@/models/Job'
 import { notifyHR } from '@/lib/mailer'
 import { rateLimiters, getIP } from '@/lib/ratelimit'
 import { sanitizeText } from '@/lib/sanitize'
@@ -56,6 +57,12 @@ export async function POST(req: NextRequest) {
     await connectDB()
     const body = await req.json()
     const seekerId = (session.user as any).id
+
+    const job = await Job.findById(body.job).lean()
+    if (!job) return NextResponse.json({ error: 'Job not found.' }, { status: 404 })
+    if ((job as any).status !== 'open') {
+      return NextResponse.json({ error: 'This job is no longer accepting applications.' }, { status: 400 })
+    }
 
     const application = await Application.create({
       job:                body.job,
