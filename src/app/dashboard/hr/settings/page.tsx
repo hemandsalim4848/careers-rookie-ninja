@@ -12,6 +12,7 @@ export default function HRSettingsPage() {
 
   const [name, setName]               = useState('')
   const [email, setEmail]             = useState('')
+  const [profilePassword, setProfilePassword] = useState('')
   const [currentPassword, setCurrent] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirm] = useState('')
@@ -53,7 +54,7 @@ export default function HRSettingsPage() {
     const res = await fetch('/api/hr/settings', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email }),
+      body: JSON.stringify({ name, email, currentPassword: profilePassword }),
     })
 
     const data = await res.json()
@@ -62,6 +63,7 @@ export default function HRSettingsPage() {
     if (!res.ok) {
       setProfileError(data.error || 'Failed to update profile.')
     } else {
+      setProfilePassword('')
       setProfileSuccess('Profile updated. Please sign in again for changes to take effect.')
     }
   }
@@ -141,6 +143,17 @@ export default function HRSettingsPage() {
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="your@email.com"
+                />
+              </div>
+
+              <div className={styles.field}>
+                <label className={styles.label}>Confirm with your password</label>
+                <input
+                  type="password"
+                  required
+                  value={profilePassword}
+                  onChange={e => setProfilePassword(e.target.value)}
+                  placeholder="Enter your current password to save changes"
                 />
               </div>
 

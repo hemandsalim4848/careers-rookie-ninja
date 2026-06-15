@@ -24,6 +24,10 @@ export async function PATCH(req: NextRequest) {
     const valid = await bcrypt.compare(body.currentPassword, user.password)
     if (!valid) return NextResponse.json({ error: 'Current password is incorrect.' }, { status: 400 })
 
+    if (body.newPassword.length < 8) {
+      return NextResponse.json({ error: 'New password must be at least 8 characters.' }, { status: 400 })
+    }
+
     const hashed = await bcrypt.hash(body.newPassword, 12)
     await User.findByIdAndUpdate(userId, { $set: { password: hashed } })
 
@@ -32,6 +36,16 @@ export async function PATCH(req: NextRequest) {
 
   // Profile update
   if (body.name || body.email) {
+    if (!body.currentPassword) {
+      return NextResponse.json({ error: 'Password is required to save profile changes.' }, { status: 400 })
+    }
+
+    const user = await User.findById(userId)
+    if (!user) return NextResponse.json({ error: 'User not found.' }, { status: 404 })
+
+    const valid = await bcrypt.compare(body.currentPassword, user.password)
+    if (!valid) return NextResponse.json({ error: 'Incorrect password.' }, { status: 400 })
+
     const update: Record<string, string> = {}
     if (body.name)  update.name  = sanitizeText(body.name)
     if (body.email) update.email = sanitizeText(body.email.toLowerCase())
