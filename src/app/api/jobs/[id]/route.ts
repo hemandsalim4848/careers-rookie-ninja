@@ -5,13 +5,14 @@ import { connectDB } from '@/lib/mongodb'
 import Job from '@/models/Job'
 import { sanitizeText, sanitizeRichText } from '@/lib/sanitize'
 import { generateSlug } from '@/lib/slug'
+import { isValidObjectId } from 'mongoose'
 
 export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
   await connectDB()
 
   // Try slug first, then fall back to MongoDB ID
   let job = await Job.findOne({ slug: params.id }).lean()
-  if (!job) job = await Job.findById(params.id).lean()
+  if (!job && isValidObjectId(params.id)) job = await Job.findById(params.id).lean()
 
   if (!job) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   return NextResponse.json(job)
@@ -28,7 +29,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   // Find by slug or ID
   let job = await Job.findOne({ slug: params.id })
-  if (!job) job = await Job.findById(params.id)
+  if (!job && isValidObjectId(params.id)) job = await Job.findById(params.id)
   if (!job) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   const sanitizedBody = {
@@ -67,7 +68,7 @@ export async function DELETE(_: NextRequest, { params }: { params: { id: string 
 
   // Find by slug or ID
   let job = await Job.findOne({ slug: params.id })
-  if (!job) job = await Job.findById(params.id)
+  if (!job && isValidObjectId(params.id)) job = await Job.findById(params.id)
   if (!job) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   await Job.findByIdAndDelete(job._id)
