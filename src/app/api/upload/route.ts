@@ -57,8 +57,6 @@ export async function POST(req: NextRequest) {
       contentType: detected.mime,
     })
 
-    console.log('Blob upload success:', blob.url)
-
     // Save to user profile
     await connectDB()
     await User.findByIdAndUpdate(userId, { resumeUrl: blob.url }, { new: true })
