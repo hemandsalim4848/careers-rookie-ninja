@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { connectDB } from '@/lib/mongodb'
 import Application from '@/models/Application'
 import Job from '@/models/Job'
+import { isValidObjectId } from 'mongoose'
 import { notifyHR } from '@/lib/mailer'
 import { rateLimiters, getIP } from '@/lib/ratelimit'
 import { sanitizeText } from '@/lib/sanitize'
@@ -58,14 +59,34 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const seekerId = session.user.id
 
-    const job = await Job.findById(body.job).lean()
+    let job = await Job.findOne({ slug: body.job }).lean()
+    if (!job && isValidObjectId(body.job)) job = await Job.findById(body.job).lean()
     if (!job) return NextResponse.json({ error: 'Job not found.' }, { status: 404 })
     if ((job as any).status !== 'open') {
       return NextResponse.json({ error: 'This job is no longer accepting applications.' }, { status: 400 })
     }
 
+    const sixMonthsAgo = new Date()
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
+
+    const recentApplication = await Application.findOne({
+      job:     (job as any)._id,
+      seeker:  seekerId,
+      createdAt: { $gte: sixMonthsAgo },
+    }).lean()
+
+    if (recentApplication) {
+      const reapplyDate = new Date((recentApplication as any).createdAt)
+      reapplyDate.setMonth(reapplyDate.getMonth() + 6)
+      const formatted = reapplyDate.toLocaleDateString('en-AE', { day: 'numeric', month: 'long', year: 'numeric' })
+      return NextResponse.json(
+        { error: `You have already applied for this job. You can apply again after ${formatted}.` },
+        { status: 409 }
+      )
+    }
+
     const application = await Application.create({
-      job:                body.job,
+      job:                (job as any)._id,
       resumeUrl:          body.resumeUrl,
       coverLetter:        sanitizeText(body.coverLetter ?? ''),
       phone:              sanitizeText(body.phone ?? ''),
@@ -91,9 +112,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(application, { status: 201 })
   } catch (err: any) {
-    if (err.code === 11000) {
-      return NextResponse.json({ error: 'You have already applied for this job.' }, { status: 409 })
-    }
     console.error('Application error:', err.message)
     return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 })
   }

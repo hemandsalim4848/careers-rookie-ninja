@@ -49,7 +49,7 @@ const ApplicationSchema = new Schema<IApplication>(
   { timestamps: true }
 )
 
-ApplicationSchema.index({ job: 1, seeker: 1 }, { unique: true })
+ApplicationSchema.index({ job: 1, seeker: 1, createdAt: -1 })
 
 delete (mongoose as any).models.Application
 export default model<IApplication>('Application', ApplicationSchema)
