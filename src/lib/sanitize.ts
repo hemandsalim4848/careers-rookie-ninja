@@ -1,18 +1,25 @@
+import sanitizeHtml from 'sanitize-html'
+
+// Strips all HTML — use for plain text fields (name, phone, etc.)
 export function sanitizeText(input: string): string {
   if (!input) return ''
-  return input
-    .replace(/<[^>]*>/g, '')           // strip HTML tags
-    .replace(/javascript:/gi, '')       // remove javascript: urls
-    .replace(/on\w+\s*=/gi, '')         // remove event handlers (onclick= etc)
-    .replace(/[<>]/g, '')               // remove any remaining < >
-    .trim()
+  return sanitizeHtml(input, { allowedTags: [], allowedAttributes: {} }).trim()
 }
 
+// Allows a safe subset of HTML — use for rich text fields (job description)
 export function sanitizeRichText(input: string): string {
   if (!input) return ''
-  return input
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // remove script tags
-    .replace(/javascript:/gi, '')
-    .replace(/on\w+\s*=/gi, '')
-    .trim()
+  return sanitizeHtml(input, {
+    allowedTags: ['p', 'br', 'b', 'i', 'em', 'strong', 'ul', 'ol', 'li', 'a', 'h2', 'h3'],
+    allowedAttributes: {
+      a: ['href', 'target', 'rel'],
+    },
+    allowedSchemes: ['https', 'mailto'],
+    transformTags: {
+      a: (_tagName, attribs) => ({
+        tagName: 'a',
+        attribs: { ...attribs, rel: 'noopener noreferrer' },
+      }),
+    },
+  }).trim()
 }
