@@ -88,6 +88,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'You have already applied for this job.' }, { status: 409 })
     }
     console.error('Application error:', err.message)
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 })
   }
 }
