@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     const userId = (session.user as any).id
 
     // Rate limit — 5 uploads per hour per user
-    const { success } = await rateLimiters.api.limit(userId)
+    const { success } = await rateLimiters.upload.limit(userId)
     if (!success) {
       return NextResponse.json(
         { error: 'Too many uploads. Please try again later.' },
