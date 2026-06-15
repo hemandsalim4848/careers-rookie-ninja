@@ -6,13 +6,19 @@ import Job from '@/models/Job'
 import { sanitizeText, sanitizeRichText } from '@/lib/sanitize'
 import { generateSlug } from '@/lib/slug'
 
-// GET — public, returns all open jobs
+// GET — public for open jobs; status=all requires HR session
 export async function GET(req: NextRequest) {
-  await connectDB()
   const { searchParams } = new URL(req.url)
   const status = searchParams.get('status')
 
-  // If status=all or no status param from HR, return everything
+  if (status === 'all') {
+    const session = await getServerSession(authOptions)
+    if (!session || (session.user as any).role !== 'hr') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+  }
+
+  await connectDB()
   const query = status === 'all' ? {} : { status: 'open' }
 
   const jobs = await Job.find(query).sort({ createdAt: -1 }).lean()
