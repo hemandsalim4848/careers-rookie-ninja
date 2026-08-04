@@ -8,6 +8,7 @@ import { isValidObjectId } from 'mongoose'
 import { notifyHR } from '@/lib/mailer'
 import { rateLimiters, getIP } from '@/lib/ratelimit'
 import { sanitizeText } from '@/lib/sanitize'
+import { processQuestionnaireAnswers } from '@/lib/questionnaire'
 
 
 export async function GET(req: NextRequest) {
@@ -29,7 +30,7 @@ export async function GET(req: NextRequest) {
   }
 
   const applications = await Application.find(query)
-    .populate('job', 'title department location type')
+    .populate('job', 'title department location type questionnaire minimumScore')
     .populate('seeker', 'name email')
     .sort({ createdAt: -1 })
     .lean()
@@ -85,6 +86,12 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    const questionnaire = (job as any).questionnaire ?? []
+    const scored = processQuestionnaireAnswers(questionnaire, body.questionnaireAnswers)
+    if ('error' in scored) {
+      return NextResponse.json({ error: scored.error }, { status: 400 })
+    }
+
     const application = await Application.create({
       job:                (job as any)._id,
       resumeUrl:          body.resumeUrl,
@@ -101,6 +108,8 @@ export async function POST(req: NextRequest) {
       basedInUAE:         sanitizeText(body.basedInUAE ?? ''),
       emirate:            sanitizeText(body.emirate ?? ''),
       uaeDrivingLicense:  sanitizeText(body.uaeDrivingLicense ?? ''),
+      questionnaireAnswers: scored.answers,
+      totalScore:           scored.totalScore,
       seeker:             seekerId,
     })
 

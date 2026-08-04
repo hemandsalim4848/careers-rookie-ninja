@@ -5,6 +5,9 @@ import { useSession } from 'next-auth/react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import styles from '../../../jobs/new/jobform.module.css'
+import QuestionnaireBuilder, {
+  type QuestionForm,
+} from '@/components/QuestionnaireBuilder'
 
 export default function EditJobPage() {
   const { id } = useParams<{ id: string }>()
@@ -20,6 +23,8 @@ export default function EditJobPage() {
     remote: false, currency: 'AED', salaryMin: '', salaryMax: '',
     description: '', responsibilities: '', requirements: '', targetMarkets: '', niceToHave: '',
   })
+  const [questionnaire, setQuestionnaire] = useState<QuestionForm[]>([])
+  const [minimumScore, setMinimumScore]   = useState(0)
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -48,6 +53,20 @@ export default function EditJobPage() {
           targetMarkets:    job.targetMarkets         ?? '',
           niceToHave:       (job.niceToHave          ?? []).join('\n'),
         })
+        setQuestionnaire(
+          (job.questionnaire ?? []).map((q: QuestionForm) => ({
+            id: q.id,
+            text: q.text ?? '',
+            type: q.type ?? 'single',
+            required: q.required !== false,
+            options: (q.options ?? []).map((o) => ({
+              id: o.id,
+              text: o.text ?? '',
+              points: o.points ?? 0,
+            })),
+          }))
+        )
+        setMinimumScore(job.minimumScore ?? 0)
         setFetching(false)
       })
       .catch(() => setFetching(false))
@@ -76,6 +95,8 @@ export default function EditJobPage() {
       requirements:     form.requirements.split('\n').map(s => s.trim()).filter(Boolean),
       targetMarkets:    form.targetMarkets || undefined,
       niceToHave:       form.niceToHave.split('\n').map(s => s.trim()).filter(Boolean),
+      questionnaire,
+      minimumScore,
     }
 
     const res = await fetch(`/api/jobs/${id}`, {
@@ -183,6 +204,13 @@ export default function EditJobPage() {
               <label className={styles.label}>Nice to have <span className={styles.hint}>(one per line, optional)</span></label>
               <textarea rows={3} value={form.niceToHave} onChange={e => set('niceToHave', e.target.value)} />
             </div>
+
+            <QuestionnaireBuilder
+              questions={questionnaire}
+              minimumScore={minimumScore}
+              onQuestionsChange={setQuestionnaire}
+              onMinimumScoreChange={setMinimumScore}
+            />
 
             {error && <p className={styles.error}>{error}</p>}
 

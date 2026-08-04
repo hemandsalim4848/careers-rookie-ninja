@@ -5,6 +5,9 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import styles from './jobform.module.css'
+import QuestionnaireBuilder, {
+  type QuestionForm,
+} from '@/components/QuestionnaireBuilder'
 
 export default function NewJobPage() {
   const { data: session, status } = useSession()
@@ -17,6 +20,8 @@ export default function NewJobPage() {
     remote: false, currency: 'AED', salaryMin: '', salaryMax: '',
     description: '', responsibilities: '', requirements: '', targetMarkets: '', niceToHave: '',
   })
+  const [questionnaire, setQuestionnaire] = useState<QuestionForm[]>([])
+  const [minimumScore, setMinimumScore]   = useState(0)
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -45,6 +50,8 @@ export default function NewJobPage() {
       requirements:     form.requirements.split('\n').map(s => s.trim()).filter(Boolean),
       targetMarkets:    form.targetMarkets || undefined,
       niceToHave:       form.niceToHave.split('\n').map(s => s.trim()).filter(Boolean),
+      questionnaire,
+      minimumScore,
     }
 
     const res = await fetch('/api/jobs', {
@@ -152,6 +159,13 @@ export default function NewJobPage() {
               <label className={styles.label}>Nice to have <span className={styles.hint}>(one per line, optional)</span></label>
               <textarea rows={3} value={form.niceToHave} onChange={e => set('niceToHave', e.target.value)} placeholder={"Open-source contributions\nExperience with WebGL"} />
             </div>
+
+            <QuestionnaireBuilder
+              questions={questionnaire}
+              minimumScore={minimumScore}
+              onQuestionsChange={setQuestionnaire}
+              onMinimumScoreChange={setMinimumScore}
+            />
 
             {error && <p className={styles.error}>{error}</p>}
 
