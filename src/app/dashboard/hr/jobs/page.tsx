@@ -87,6 +87,14 @@ export default function HRJobsPage() {
     <div>
       <p className={styles.jobTitle}>{job.title}</p>
       <p className={styles.jobDept}>{job.department} · {job.location}</p>
+      {(job.questionnaire?.length > 0 || (job.minimumScore ?? 0) > 0) && (
+        <p className={styles.jobMeta}>
+          {job.questionnaire?.length > 0
+            ? `${job.questionnaire.length} screening question${job.questionnaire.length !== 1 ? 's' : ''}`
+            : 'No screening questions'}
+          {(job.minimumScore ?? 0) > 0 ? ` · min score ${job.minimumScore}` : ''}
+        </p>
+      )}
       {job.status === 'closed' && (
         <p className={styles.closedNote}>This job is hidden from applicants</p>
       )}

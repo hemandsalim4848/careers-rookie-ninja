@@ -37,13 +37,18 @@ export async function POST(req: NextRequest) {
   const body = await req.json()
 
   const sanitizedBody = {
-    ...body,
     title:            sanitizeText(body.title ?? ''),
     department:       sanitizeText(body.department ?? ''),
     location:         sanitizeText(body.location ?? ''),
+    type:             body.type ?? 'Full-time',
+    remote:           Boolean(body.remote),
+    currency:         body.currency ?? 'AED',
+    salaryMin:        body.salaryMin === '' || body.salaryMin == null ? undefined : Number(body.salaryMin),
+    salaryMax:        body.salaryMax === '' || body.salaryMax == null ? undefined : Number(body.salaryMax),
     description:      sanitizeRichText(body.description ?? ''),
     responsibilities: (body.responsibilities ?? []).map((r: string) => sanitizeText(r)),
     requirements:     (body.requirements ?? []).map((r: string) => sanitizeText(r)),
+    targetMarkets:    sanitizeText(body.targetMarkets ?? ''),
     niceToHave:       (body.niceToHave ?? []).map((r: string) => sanitizeText(r)),
     questionnaire:    sanitizeQuestionnaire(body.questionnaire),
     minimumScore:     sanitizeMinimumScore(body.minimumScore),

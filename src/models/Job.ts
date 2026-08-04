@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, models, model } from 'mongoose'
+import mongoose, { Schema, Document, model } from 'mongoose'
 
 export interface IQuestionOption {
   id: string
@@ -90,4 +90,6 @@ JobSchema.index({ createdAt: -1 })
 // Text search index — for title/description keyword search
 JobSchema.index({ title: 'text', description: 'text' })
 
-export default models.Job || model<IJob>('Job', JobSchema)
+// Recompile on hot reload so new paths (questionnaire, minimumScore) are not dropped by a cached schema
+delete (mongoose as any).models.Job
+export default model<IJob>('Job', JobSchema)
