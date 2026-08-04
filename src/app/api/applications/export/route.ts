@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
   const query = jobId ? { job: jobId } : {}
   const applications = await Application.find(query)
     .populate('seeker', 'name email')
-    .populate('job', 'title department')
+    .populate('job', 'title department minimumScore')
     .lean()
 
   if (applications.length === 0) {
@@ -43,6 +43,11 @@ const rows = applications.map((a: any) => ({
   'Based in UAE':     a.basedInUAE         ?? '',
   Emirate:            a.emirate            ?? '',
   'UAE Driving Lic':  a.uaeDrivingLicense  ?? '',
+  Score:              a.totalScore ?? 0,
+  'Minimum Score':    a.job?.minimumScore ?? 0,
+  'Meets Minimum':    (a.job?.minimumScore ?? 0) > 0
+                        ? ((a.totalScore ?? 0) >= a.job.minimumScore ? 'Yes' : 'No')
+                        : '',
   Status:             a.status,
   Applied:            new Date(a.createdAt).toLocaleDateString('en-AE'),
   Resume:             a.resumeUrl,

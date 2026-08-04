@@ -71,8 +71,147 @@
   margin-top: 8px;
 }
 
+/* Questionnaire builder */
+.questionnaireSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sectionTitle {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.sectionHint {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.emptyQuestionnaire {
+  font-size: 13px;
+  color: var(--text-muted);
+  padding: 16px;
+  background: var(--bg-3);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border);
+}
+
+.questionCard {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.questionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.questionIndex {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.questionActions {
+  display: flex;
+  gap: 6px;
+}
+
+.iconBtn,
+.iconBtnDanger {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.iconBtn:hover:not(:disabled) {
+  border-color: var(--border-hover);
+  color: var(--accent);
+}
+
+.iconBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.iconBtnDanger {
+  border-color: rgba(248, 113, 113, 0.25);
+  color: #F87171;
+}
+
+.iconBtnDanger:hover:not(:disabled) {
+  background: rgba(248, 113, 113, 0.08);
+  border-color: rgba(248, 113, 113, 0.4);
+}
+
+.iconBtnDanger:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.optionsBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.optionsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.optionRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.optionText {
+  flex: 1;
+}
+
+.optionPoints {
+  width: 80px;
+  flex-shrink: 0;
+}
+
 @media (max-width: 600px) {
   .card { padding: 24px 16px; }
   .formActions { flex-direction: column-reverse; }
   .formActions a, .formActions button { width: 100%; justify-content: center; text-align: center; }
+  .optionPoints { width: 64px; }
 }

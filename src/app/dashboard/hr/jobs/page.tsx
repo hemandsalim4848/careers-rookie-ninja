@@ -9,27 +9,35 @@ import styles from './jobs.module.css'
 
 export default function HRJobsPage() {
   const { data: session, status } = useSession()
-const router = useRouter()
-  const [jobs, setJobs]     = useState<any[]>([])
+  const router = useRouter()
+  const [jobs, setJobs] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-  if (status === 'unauthenticated') {
-    router.push('/auth/login')
-  } else if (status === 'authenticated' && (session?.user as any)?.role !== 'hr') {
-    router.push('/')
-  }
-}, [status, session])
-
-if (status === 'loading' || !session) return (
-  <div style={{ padding: 80, textAlign: 'center', color: 'var(--text-muted)' }}>Loading…</div>
-)
+    if (status === 'unauthenticated') {
+      router.push('/auth/login')
+    } else if (status === 'authenticated' && (session?.user as any)?.role !== 'hr') {
+      router.push('/')
+    }
+  }, [status, session, router])
 
   useEffect(() => {
+    if (status !== 'authenticated') return
     fetch('/api/jobs?status=all')
       .then(r => r.json())
-      .then(data => { setJobs(data); setLoading(false) })
-  }, [])
+      .then(data => {
+        setJobs(Array.isArray(data) ? data : [])
+        setLoading(false)
+      })
+      .catch(() => {
+        setJobs([])
+        setLoading(false)
+      })
+  }, [status])
+
+  if (status === 'loading' || !session) return (
+    <div style={{ padding: 80, textAlign: 'center', color: 'var(--text-muted)' }}>Loading…</div>
+  )
 
   async function toggleStatus(id: string, current: string) {
     const next = current === 'open' ? 'closed' : 'open'

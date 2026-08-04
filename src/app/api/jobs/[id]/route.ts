@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { connectDB } from '@/lib/mongodb'
 import Job from '@/models/Job'
 import { sanitizeText, sanitizeRichText } from '@/lib/sanitize'
+import { sanitizeQuestionnaire, sanitizeMinimumScore } from '@/lib/questionnaire'
 import { generateSlug } from '@/lib/slug'
 import { isValidObjectId } from 'mongoose'
 
@@ -46,6 +47,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     }),
     ...(body.niceToHave && {
       niceToHave: body.niceToHave.map((r: string) => sanitizeText(r))
+    }),
+    ...(body.questionnaire !== undefined && {
+      questionnaire: sanitizeQuestionnaire(body.questionnaire)
+    }),
+    ...(body.minimumScore !== undefined && {
+      minimumScore: sanitizeMinimumScore(body.minimumScore)
     }),
   }
 

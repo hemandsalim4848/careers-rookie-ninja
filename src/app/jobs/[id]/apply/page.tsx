@@ -31,6 +31,8 @@ export default function ApplyPage() {
   const [basedInUAE,        setBasedInUAE]        = useState('')
   const [emirate,           setEmirate]           = useState('')
   const [uaeDrivingLicense, setUaeDrivingLicense] = useState('')
+  // Questionnaire answers: questionId -> { selectedOptionIds, textAnswer }
+  const [answers, setAnswers] = useState<Record<string, { selectedOptionIds: string[]; textAnswer: string }>>({})
 
   // Auth guard
   useEffect(() => {
@@ -47,11 +49,45 @@ export default function ApplyPage() {
     ]).then(([prof, j]) => {
       setProfile(prof)
       setJob(j)
+      // Init answer state for questionnaire
+      const init: Record<string, { selectedOptionIds: string[]; textAnswer: string }> = {}
+      for (const q of j?.questionnaire ?? []) {
+        init[q.id] = { selectedOptionIds: [], textAnswer: '' }
+      }
+      setAnswers(init)
       setLoading(false)
     }).catch(() => setLoading(false))
   }, [id, session])
 
   const isDubai = job?.location === 'Dubai'
+  const questionnaire = job?.questionnaire ?? []
+
+  function setSingleOption(questionId: string, optionId: string) {
+    setAnswers((prev) => ({
+      ...prev,
+      [questionId]: { selectedOptionIds: [optionId], textAnswer: '' },
+    }))
+  }
+
+  function toggleMultiOption(questionId: string, optionId: string) {
+    setAnswers((prev) => {
+      const current = prev[questionId]?.selectedOptionIds ?? []
+      const next = current.includes(optionId)
+        ? current.filter((id) => id !== optionId)
+        : [...current, optionId]
+      return {
+        ...prev,
+        [questionId]: { selectedOptionIds: next, textAnswer: '' },
+      }
+    })
+  }
+
+  function setTextAnswer(questionId: string, text: string) {
+    setAnswers((prev) => ({
+      ...prev,
+      [questionId]: { selectedOptionIds: [], textAnswer: text },
+    }))
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -59,8 +95,30 @@ export default function ApplyPage() {
       setError('Please upload your resume in your dashboard first.')
       return
     }
+
+    // Client-side required check for questionnaire
+    for (const q of questionnaire) {
+      if (!q.required) continue
+      const a = answers[q.id]
+      if (q.type === 'text') {
+        if (!a?.textAnswer?.trim()) {
+          setError(`Please answer: ${q.text}`)
+          return
+        }
+      } else if (!a?.selectedOptionIds?.length) {
+        setError(`Please answer: ${q.text}`)
+        return
+      }
+    }
+
     setSubmitting(true)
     setError('')
+
+    const questionnaireAnswers = questionnaire.map((q: any) => ({
+      questionId: q.id,
+      selectedOptionIds: answers[q.id]?.selectedOptionIds ?? [],
+      textAnswer: answers[q.id]?.textAnswer ?? '',
+    }))
 
     const res = await fetch('/api/applications', {
       method: 'POST',
@@ -78,6 +136,7 @@ export default function ApplyPage() {
         currentSalary,
         expectedSalary,
         noticePeriod,
+        questionnaireAnswers,
         ...(isDubai && { basedInUAE, emirate, uaeDrivingLicense }),
       }),
     })
@@ -305,6 +364,66 @@ export default function ApplyPage() {
                     <option>Umm Al Quwain</option>
                   </select>
                 </div>
+              </>
+            )}
+
+            {/* ── JOB QUESTIONNAIRE ── */}
+            {questionnaire.length > 0 && (
+              <>
+                <hr className={styles.divider} />
+                <div className={styles.sectionHeading}>Screening questions</div>
+
+                {questionnaire.map((q: any) => (
+                  <div key={q.id} className={styles.field}>
+                    <label className={styles.label}>
+                      {q.text}
+                      {q.required && <span className={styles.req}> *</span>}
+                    </label>
+
+                    {q.type === 'text' && (
+                      <textarea
+                        required={q.required}
+                        rows={3}
+                        value={answers[q.id]?.textAnswer ?? ''}
+                        onChange={(e) => setTextAnswer(q.id, e.target.value)}
+                        placeholder="Your answer…"
+                        className={styles.textarea}
+                      />
+                    )}
+
+                    {q.type === 'single' && (
+                      <div className={styles.optionGroup}>
+                        {q.options?.map((opt: any) => (
+                          <label key={opt.id} className={styles.optionLabel}>
+                            <input
+                              type="radio"
+                              name={`q_${q.id}`}
+                              required={q.required}
+                              checked={(answers[q.id]?.selectedOptionIds ?? [])[0] === opt.id}
+                              onChange={() => setSingleOption(q.id, opt.id)}
+                            />
+                            <span>{opt.text}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+
+                    {q.type === 'multiple' && (
+                      <div className={styles.optionGroup}>
+                        {q.options?.map((opt: any) => (
+                          <label key={opt.id} className={styles.optionLabel}>
+                            <input
+                              type="checkbox"
+                              checked={(answers[q.id]?.selectedOptionIds ?? []).includes(opt.id)}
+                              onChange={() => toggleMultiOption(q.id, opt.id)}
+                            />
+                            <span>{opt.text}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </>
             )}
 

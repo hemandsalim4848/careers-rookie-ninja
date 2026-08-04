@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { connectDB } from '@/lib/mongodb'
 import Job from '@/models/Job'
 import { sanitizeText, sanitizeRichText } from '@/lib/sanitize'
+import { sanitizeQuestionnaire, sanitizeMinimumScore } from '@/lib/questionnaire'
 import { generateSlug } from '@/lib/slug'
 
 // GET — public for open jobs; status=all requires HR session
@@ -44,6 +45,8 @@ export async function POST(req: NextRequest) {
     responsibilities: (body.responsibilities ?? []).map((r: string) => sanitizeText(r)),
     requirements:     (body.requirements ?? []).map((r: string) => sanitizeText(r)),
     niceToHave:       (body.niceToHave ?? []).map((r: string) => sanitizeText(r)),
+    questionnaire:    sanitizeQuestionnaire(body.questionnaire),
+    minimumScore:     sanitizeMinimumScore(body.minimumScore),
   }
 
   const job = await Job.create({ ...sanitizedBody, postedBy: session.user.id })

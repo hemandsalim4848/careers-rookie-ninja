@@ -1,5 +1,11 @@
 import mongoose, { Schema, Document, models, model } from 'mongoose'
 
+export interface IQuestionnaireAnswer {
+  questionId: string
+  selectedOptionIds: string[]
+  textAnswer?: string
+}
+
 export interface IApplication extends Document {
   job: mongoose.Types.ObjectId
   seeker: mongoose.Types.ObjectId
@@ -20,9 +26,21 @@ export interface IApplication extends Document {
   basedInUAE?: string
   emirate?: string
   uaeDrivingLicense?: string
+  // Questionnaire scoring
+  questionnaireAnswers: IQuestionnaireAnswer[]
+  totalScore: number
   createdAt: Date
   updatedAt: Date
 }
+
+const QuestionnaireAnswerSchema = new Schema(
+  {
+    questionId:         { type: String, required: true },
+    selectedOptionIds:  { type: [String], default: [] },
+    textAnswer:         { type: String, default: '' },
+  },
+  { _id: false }
+)
 
 const ApplicationSchema = new Schema<IApplication>(
   {
@@ -45,6 +63,9 @@ const ApplicationSchema = new Schema<IApplication>(
     basedInUAE:        { type: String, default: '' },
     emirate:           { type: String, default: '' },
     uaeDrivingLicense: { type: String, default: '' },
+    // Questionnaire scoring
+    questionnaireAnswers: { type: [QuestionnaireAnswerSchema], default: [] },
+    totalScore:           { type: Number, default: 0 },
   },
   { timestamps: true }
 )
