@@ -5,7 +5,8 @@ import JobCard from '@/components/JobCard'
 import styles from './page.module.css'
 
 const JOB_TYPES = ['Full-time', 'Part-time', 'Contract', 'Internship']
-const PAGE_SIZE = 5
+// 2x2 grid => 4 cards per page
+const PAGE_SIZE = 4
 
 export default function JobsPage() {
   const [jobs, setJobs]         = useState<any[]>([])
@@ -169,7 +170,7 @@ export default function JobsPage() {
 
               {loading ? (
                 <div className={styles.grid}>
-                  {[...Array(5)].map((_, i) => (
+                  {[...Array(PAGE_SIZE)].map((_, i) => (
                     <div key={i} className={styles.skeletonCard} />
                   ))}
                 </div>
