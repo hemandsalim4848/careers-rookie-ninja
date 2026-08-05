@@ -5,8 +5,8 @@ import JobCard from '@/components/JobCard'
 import styles from './page.module.css'
 
 const JOB_TYPES = ['Full-time', 'Part-time', 'Contract', 'Internship']
-// 2x2 grid => 4 cards per page
-const PAGE_SIZE = 4
+// 2-column grid: show 8 cards per page (2x4)
+const PAGE_SIZE = 8
 
 export default function JobsPage() {
   const [jobs, setJobs]         = useState<any[]>([])
