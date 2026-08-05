@@ -4,7 +4,13 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
+import dynamic from "next/dynamic";
 import styles from "./applications.module.css";
+
+const ResumeViewerModal = dynamic(
+  () => import("@/components/ResumeViewerModal"),
+  { ssr: false }
+);
 
 const STATUSES = ["pending", "shortlisted", "hired", "rejected"] as const;
 
@@ -40,6 +46,23 @@ function ApplicationsContent() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [scoreFilter, setScoreFilter] = useState<"all" | "meets" | "below">("all");
+  const [viewerApp, setViewerApp] = useState<{
+    id: string;
+    name?: string;
+  } | null>(null);
+
+  function openResume(app: any) {
+    if (app.resumeType === "pdf") {
+      setViewerApp({ id: app._id, name: app.seeker?.name });
+      return;
+    }
+    const link = document.createElement("a");
+    link.href = `/api/applications/${app._id}/resume?download=1`;
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
 
   // Auth guard
   useEffect(() => {
@@ -342,15 +365,16 @@ function ApplicationsContent() {
                           </span>
                         )}
                       </div>
-                      <a
-                        href={app.resumeUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        type="button"
                         className={styles.resumeLink}
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openResume(app);
+                        }}
                       >
-                        View ↗
-                      </a>
+                        {app.resumeType === "pdf" ? "View" : "Download"}
+                      </button>
                       <select
                         className={`${styles.statusSelect} ${styles[app.status]}`}
                         value={app.status}
@@ -614,6 +638,13 @@ function ApplicationsContent() {
           </>
         )}
       </div>
+      {viewerApp && (
+        <ResumeViewerModal
+          applicationId={viewerApp.id}
+          applicantName={viewerApp.name}
+          onClose={() => setViewerApp(null)}
+        />
+      )}
     </div>
   );
 }

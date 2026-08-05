@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "create-hr": "ts-node --project tsconfig.json -e \"process.env.TS_NODE_PROJECT='tsconfig.json'\" scripts/createHR.ts"
+    "create-hr": "tsx scripts/createHR.ts",
+    "seed-jobs": "tsx scripts/seedJobs.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.624.0",
@@ -26,6 +27,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.52.1",
+    "react-pdf": "^10.4.1",
     "recharts": "^3.8.1",
     "sanitize-html": "^2.17.5",
     "zod": "^3.23.8"
@@ -41,6 +43,7 @@
     "eslint": "^8",
     "eslint-config-next": "14.2.5",
     "ts-node": "^10.9.2",
+    "tsx": "^4.23.5",
     "typescript": "^5"
   }
 }

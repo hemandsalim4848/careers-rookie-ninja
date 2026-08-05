@@ -102,6 +102,11 @@
 .resumeLink {
   font-size: 13px;
   color: var(--accent);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
   transition: opacity 0.15s;
 }
 .resumeLink:hover { opacity: 0.75; }
