@@ -9,6 +9,7 @@ import { notifyHR } from '@/lib/mailer'
 import { rateLimiters, getIP } from '@/lib/ratelimit'
 import { sanitizeText } from '@/lib/sanitize'
 import { processQuestionnaireAnswers } from '@/lib/questionnaire'
+import { getResumeTypeFromUrl } from '@/lib/resume'
 
 
 export async function GET(req: NextRequest) {
@@ -34,6 +35,17 @@ export async function GET(req: NextRequest) {
     .populate('seeker', 'name email')
     .sort({ createdAt: -1 })
     .lean()
+
+  if (role === 'hr') {
+    const sanitized = applications.map((app: any) => {
+      const { resumeUrl, ...rest } = app
+      return {
+        ...rest,
+        resumeType: getResumeTypeFromUrl(resumeUrl),
+      }
+    })
+    return NextResponse.json(sanitized)
+  }
 
   return NextResponse.json(applications)
 }

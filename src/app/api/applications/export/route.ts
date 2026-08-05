@@ -5,6 +5,7 @@ import { connectDB } from '@/lib/mongodb'
 import Application from '@/models/Application'
 import Job from '@/models/Job'
 import User from '@/models/User'
+import { getResumeTypeFromUrl } from '@/lib/resume'
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions)
@@ -50,7 +51,7 @@ const rows = applications.map((a: any) => ({
                         : '',
   Status:             a.status,
   Applied:            new Date(a.createdAt).toLocaleDateString('en-AE'),
-  Resume:             a.resumeUrl,
+  'Resume Type':      getResumeTypeFromUrl(a.resumeUrl),
 }))
 
   const headers = Object.keys(rows[0])
