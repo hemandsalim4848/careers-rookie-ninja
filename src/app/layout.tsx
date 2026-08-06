@@ -7,6 +7,9 @@ import AuthProvider from '@/components/AuthProvider'
 export const metadata: Metadata = {
   title: 'Careers — Rookie Ninja',
   description: 'Join Rookie Ninja. Explore open roles across engineering, design, and more.',
+  icons: {
+    icon: '/favicon.ico',
+  },
   openGraph: {
     title: 'Careers — Rookie Ninja',
     description: 'Join Rookie Ninja. Explore open roles across engineering, design, and more.',

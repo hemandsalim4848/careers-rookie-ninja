@@ -26,6 +26,12 @@
   text-decoration: none;
 }
 
+.logoImg {
+  height: 40px;
+  width: auto;
+  display: block;
+}
+
 .logoMark {
   width: 34px;
   height: 34px;
