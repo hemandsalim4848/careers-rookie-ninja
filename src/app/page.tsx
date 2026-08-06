@@ -74,8 +74,8 @@ export default function JobsPage() {
             <span className={styles.heroAccent}>worth remembering.</span>
           </h1>
           <p className={styles.heroSub}>
-            Join the Rookie Ninja team — a small, focused group building tools
-            that developers actually love. Remote-friendly, equity included.
+            Join the Rookie Ninja team — Explore current openings across our
+            teams and discover where your expertise can make an impact.
           </p>
           <div className={styles.searchWrap}>
             <div className={styles.searchIcon} aria-hidden="true">
