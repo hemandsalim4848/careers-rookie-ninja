@@ -66,7 +66,7 @@ export default function JobsPage() {
         <div className="container">
           <div className={styles.heroPill}>
             <span className={styles.heroPillDot} />
-            {loading ? "—" : `${jobs.length} open positions`}
+            {loading ? " " : `${jobs.length} open positions`}
           </div>
           <h1 className={styles.heroHeading}>
             Build something
@@ -342,7 +342,7 @@ export default function JobsPage() {
             <div>
               <h2 className={styles.ctaHeading}>Don't see the right role?</h2>
               <p className={styles.ctaSub}>
-                Send us your profile — we keep great candidates on file.
+                Send us your profile - we keep great candidates on file.
               </p>
             </div>
             <a href="mailto:careers@rookie-ninja.com" className="btn-primary">
