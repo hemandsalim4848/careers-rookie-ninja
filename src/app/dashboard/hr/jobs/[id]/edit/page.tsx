@@ -9,6 +9,13 @@ import QuestionnaireBuilder, {
   type QuestionForm,
 } from '@/components/QuestionnaireBuilder'
 
+const PRESET_LOCATIONS = [
+  'Dubai, UAE',
+  'Sharjah, UAE',
+  'Abu Dhabi, UAE',
+  'Hyderabad, India',
+]
+
 export default function EditJobPage() {
   const { id } = useParams<{ id: string }>()
   const { data: session, status } = useSession()
@@ -23,6 +30,7 @@ export default function EditJobPage() {
     remote: false, currency: 'AED', salaryMin: '', salaryMax: '',
     description: '', responsibilities: '', requirements: '', targetMarkets: '', niceToHave: '',
   })
+  const [locationOther, setLocationOther] = useState(false)
   const [questionnaire, setQuestionnaire] = useState<QuestionForm[]>([])
   const [minimumScore, setMinimumScore]   = useState(0)
 
@@ -38,10 +46,11 @@ export default function EditJobPage() {
     fetch(`/api/jobs/${id}`)
       .then(r => r.json())
       .then(job => {
+        const location = job.location ?? ''
         setForm({
           title:            job.title               ?? '',
           department:       job.department           ?? '',
-          location:         job.location             ?? '',
+          location,
           type:             job.type                 ?? 'Full-time',
           remote:           job.remote               ?? false,
           currency:         job.currency             ?? 'AED',
@@ -53,6 +62,7 @@ export default function EditJobPage() {
           targetMarkets:    job.targetMarkets         ?? '',
           niceToHave:       (job.niceToHave          ?? []).join('\n'),
         })
+        setLocationOther(Boolean(location) && !PRESET_LOCATIONS.includes(location))
         setQuestionnaire(
           (job.questionnaire ?? []).map((q: QuestionForm) => ({
             id: q.id,
@@ -137,11 +147,34 @@ export default function EditJobPage() {
             <div className={styles.row}>
               <div className={styles.field}>
                 <label className={styles.label}>Location *</label>
-                <select required value={form.location} onChange={e => set('location', e.target.value)}>
+                <select
+                  required
+                  value={locationOther ? 'other' : form.location}
+                  onChange={e => {
+                    if (e.target.value === 'other') {
+                      setLocationOther(true)
+                      set('location', '')
+                    } else {
+                      setLocationOther(false)
+                      set('location', e.target.value)
+                    }
+                  }}
+                >
                   <option value="">Select location</option>
-                  <option value="Dubai">Dubai</option>
-                  <option value="India">India</option>
+                  {PRESET_LOCATIONS.map(l => (
+                    <option key={l} value={l}>{l}</option>
+                  ))}
+                  <option value="other">Other</option>
                 </select>
+                {locationOther && (
+                  <input
+                    required
+                    value={form.location}
+                    onChange={e => set('location', e.target.value)}
+                    placeholder="Enter location"
+                    style={{ marginTop: 8 }}
+                  />
+                )}
               </div>
               <div className={styles.field}>
                 <label className={styles.label}>Job type *</label>
