@@ -20,6 +20,7 @@ export default function NewJobPage() {
     remote: false, currency: 'AED', salaryMin: '', salaryMax: '',
     description: '', responsibilities: '', requirements: '', targetMarkets: '', niceToHave: '',
   })
+  const [locationOther, setLocationOther] = useState(false)
   const [questionnaire, setQuestionnaire] = useState<QuestionForm[]>([])
   const [minimumScore, setMinimumScore]   = useState(0)
 
@@ -92,11 +93,35 @@ export default function NewJobPage() {
             <div className={styles.row}>
               <div className={styles.field}>
                 <label className={styles.label}>Location *</label>
-                <select required value={form.location} onChange={e => set('location', e.target.value)}>
+                <select
+                  required
+                  value={locationOther ? 'other' : form.location}
+                  onChange={e => {
+                    if (e.target.value === 'other') {
+                      setLocationOther(true)
+                      set('location', '')
+                    } else {
+                      setLocationOther(false)
+                      set('location', e.target.value)
+                    }
+                  }}
+                >
                   <option value="">Select location</option>
-                  <option value="Dubai">Dubai</option>
-                  <option value="India">India</option>
+                  <option value="Dubai, UAE">Dubai, UAE</option>
+                  <option value="Sharjah, UAE">Sharjah, UAE</option>
+                  <option value="Abu Dhabi, UAE">Abu Dhabi, UAE</option>
+                  <option value="Hyderabad, India">Hyderabad, India</option>
+                  <option value="other">Other</option>
                 </select>
+                {locationOther && (
+                  <input
+                    required
+                    value={form.location}
+                    onChange={e => set('location', e.target.value)}
+                    placeholder="Enter location"
+                    style={{ marginTop: 8 }}
+                  />
+                )}
               </div>
               <div className={styles.field}>
                 <label className={styles.label}>Job type *</label>
