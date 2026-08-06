@@ -5,9 +5,18 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { connectDB } from '@/lib/mongodb'
 import User from '@/models/User'
-import { put } from '@vercel/blob'
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
 import { rateLimiters } from '@/lib/ratelimit'
 import { fileTypeFromBuffer } from 'file-type'
+
+const r2 = new S3Client({
+  region: 'auto',
+  endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  credentials: {
+    accessKeyId:     process.env.R2_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+  },
+})
 
 export async function POST(req: NextRequest) {
   try {
@@ -51,17 +60,21 @@ export async function POST(req: NextRequest) {
     const ext = allowedMimes[detected.mime]
     const filename = `resumes/resume_${userId}_${Date.now()}.${ext}`
 
-    // Upload to Vercel Blob
-    const blob = await put(filename, buffer, {
-      access: 'public',
-      contentType: detected.mime,
-    })
+    // Upload to Cloudflare R2
+    await r2.send(new PutObjectCommand({
+      Bucket:      process.env.R2_BUCKET!,
+      Key:         filename,
+      Body:        buffer,
+      ContentType: detected.mime,
+    }))
+
+    const url = `${process.env.R2_PUBLIC_URL}/${filename}`
 
     // Save to user profile
     await connectDB()
-    await User.findByIdAndUpdate(userId, { resumeUrl: blob.url }, { new: true })
+    await User.findByIdAndUpdate(userId, { resumeUrl: url }, { new: true })
 
-    return NextResponse.json({ url: blob.url })
+    return NextResponse.json({ url })
   } catch (err: any) {
     console.error('Upload error:', err.message)
     return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 })

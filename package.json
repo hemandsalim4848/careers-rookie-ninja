@@ -11,7 +11,7 @@
     "seed-jobs": "tsx scripts/seedJobs.ts"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.624.0",
+    "@aws-sdk/client-s3": "^3.1105.0",
     "@aws-sdk/s3-request-presigner": "^3.624.0",
     "@hookform/resolvers": "^3.9.0",
     "@upstash/ratelimit": "^2.0.8",
