@@ -8,6 +8,10 @@ import { sanitizeQuestionnaire, sanitizeMinimumScore } from '@/lib/questionnaire
 import { generateSlug } from '@/lib/slug'
 import { isValidObjectId } from 'mongoose'
 
+// Always hit MongoDB — do not cache GET responses on Vercel
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
   await connectDB()
 
@@ -16,7 +20,9 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
   if (!job && isValidObjectId(params.id)) job = await Job.findById(params.id).lean()
 
   if (!job) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  return NextResponse.json(job)
+  return NextResponse.json(job, {
+    headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' },
+  })
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {

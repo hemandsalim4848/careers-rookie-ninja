@@ -11,6 +11,8 @@ import { sanitizeText } from '@/lib/sanitize'
 import { processQuestionnaireAnswers } from '@/lib/questionnaire'
 import { getResumeTypeFromUrl } from '@/lib/resume'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions)
