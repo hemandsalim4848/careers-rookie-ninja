@@ -19,7 +19,7 @@ export default function JobsPage() {
   const [page, setPage] = useState(1);
 
   useEffect(() => {
-    fetch("/api/jobs")
+    fetch("/api/jobs", { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => {
         setJobs(data);

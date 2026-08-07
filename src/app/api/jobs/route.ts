@@ -7,6 +7,10 @@ import { sanitizeText, sanitizeRichText } from '@/lib/sanitize'
 import { sanitizeQuestionnaire, sanitizeMinimumScore } from '@/lib/questionnaire'
 import { generateSlug } from '@/lib/slug'
 
+// Always hit MongoDB — do not cache GET responses on Vercel
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 // GET — public for open jobs; status=all requires HR session
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
@@ -23,7 +27,9 @@ export async function GET(req: NextRequest) {
   const query = status === 'all' ? {} : { status: 'open' }
 
   const jobs = await Job.find(query).sort({ createdAt: -1 }).lean()
-  return NextResponse.json(jobs)
+  return NextResponse.json(jobs, {
+    headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' },
+  })
 }
 
 // POST — HR only, create a job
