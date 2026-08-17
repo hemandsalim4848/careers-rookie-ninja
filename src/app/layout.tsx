@@ -5,15 +5,25 @@ import Footer from '@/components/Footer'
 import AuthProvider from '@/components/AuthProvider'
 
 export const metadata: Metadata = {
-  title: 'Careers — Rookie Ninja',
-  description: 'Join Rookie Ninja. Explore open roles across engineering, design, and more.',
-  icons: {
-    icon: '/favicon.ico',
+  metadataBase: new URL('https://careers.rookie-ninja.com'),
+  title: {
+    default: 'Careers — Rookie Ninja',
+    template: '%s — Rookie Ninja Careers',
   },
+  description: 'Join Rookie Ninja. Explore open roles across engineering, design, and more.',
+  icons: { icon: '/favicon.ico' },
+  alternates: { canonical: '/' },
   openGraph: {
     title: 'Careers — Rookie Ninja',
     description: 'Join Rookie Ninja. Explore open roles across engineering, design, and more.',
     siteName: 'Rookie Ninja Careers',
+    url: 'https://careers.rookie-ninja.com',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Careers — Rookie Ninja',
+    description: 'Join Rookie Ninja. Explore open roles across engineering, design, and more.',
   },
 }
 
