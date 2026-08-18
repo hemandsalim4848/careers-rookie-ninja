@@ -209,6 +209,8 @@
   color: var(--text-secondary);
   font-weight: 500;
   margin: 0;
+  text-align: right;
+  max-width: 55%;
 }
 
 .metaGreen { color: #34D399 !important; }
