@@ -28,11 +28,18 @@ export async function GET(req: NextRequest) {
   if (role === 'hr') {
     const jobId = searchParams.get('jobId')
     if (jobId) {
+      if (!isValidObjectId(jobId)) {
+        return NextResponse.json({ error: 'Not found' }, { status: 404 })
+      }
       const job = await Job.findById(jobId).lean()
       if (!job || String((job as any).postedBy) !== session.user.id) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
       }
       query.job = jobId
+    } else {
+      // Scope to only jobs owned by this HR — never expose cross-account data
+      const ownedJobs = await Job.find({ postedBy: session.user.id }, { _id: 1 }).lean()
+      query.job = { $in: ownedJobs.map((j: any) => j._id) }
     }
   } else {
     query.seeker = id
@@ -110,6 +117,15 @@ export async function POST(req: NextRequest) {
     const scored = processQuestionnaireAnswers(questionnaire, body.questionnaireAnswers)
     if ('error' in scored) {
       return NextResponse.json({ error: scored.error }, { status: 400 })
+    }
+
+    // Enforce minimum score threshold
+    const minScore = (job as any).minimumScore ?? 0
+    if (minScore > 0 && scored.totalScore < minScore) {
+      return NextResponse.json(
+        { error: 'Your answers do not meet the minimum score required for this role.' },
+        { status: 400 }
+      )
     }
 
     // Validate resumeUrl origin against R2 public domain to prevent SSRF

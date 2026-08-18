@@ -26,13 +26,31 @@ export async function PATCH(req: NextRequest) {
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   await connectDB()
-  const body = await req.json()
+  let body: any
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 })
+  }
   const userId = session.user.id
 
   const allowed = ['phone', 'linkedIn', 'resumeUrl', 'name']
   const update: Record<string, any> = {}
   for (const key of allowed) {
     if (body[key] !== undefined) update[key] = sanitizeText(body[key])
+  }
+
+  // Validate resumeUrl origin against R2 to prevent SSRF via profile
+  if (update.resumeUrl) {
+    try {
+      const supplied = new URL(update.resumeUrl)
+      const allowed  = new URL(process.env.R2_PUBLIC_URL!)
+      if (supplied.origin !== allowed.origin) {
+        return NextResponse.json({ error: 'Invalid resume URL.' }, { status: 400 })
+      }
+    } catch {
+      return NextResponse.json({ error: 'Invalid resume URL.' }, { status: 400 })
+    }
   }
 
   const user = await User.findByIdAndUpdate(

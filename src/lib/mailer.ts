@@ -69,7 +69,7 @@ export async function notifyApplicant({
 
     await transporter.sendMail({
       from:    `"Rookie Ninja Careers" <onboarding@resend.dev>`,
-      to:      process.env.HR_EMAIL!,
+      to:      to,
       subject: `Your application for ${jobTitle} — update`,
       html: `
         <p>Hi ${name},</p>

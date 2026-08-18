@@ -24,7 +24,14 @@ export async function GET(req: NextRequest) {
   }
 
   await connectDB()
-  const query = status === 'all' ? {} : { status: 'open' }
+
+  let query: Record<string, any>
+  if (status === 'all') {
+    const session = await getServerSession(authOptions)
+    query = { postedBy: session!.user.id }
+  } else {
+    query = { status: 'open' }
+  }
 
   const jobs = await Job.find(query).sort({ createdAt: -1 }).lean()
   return NextResponse.json(jobs, {
@@ -40,7 +47,12 @@ export async function POST(req: NextRequest) {
   }
 
   await connectDB()
-  const body = await req.json()
+  let body: any
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 })
+  }
 
   const sanitizedBody = {
     title:            sanitizeText(body.title ?? ''),

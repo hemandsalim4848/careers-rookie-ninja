@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { connectDB } from "@/lib/mongodb";
 import User from "@/models/User";
 import { rateLimiters } from "@/lib/ratelimit";
+import { sanitizeText } from "@/lib/sanitize";
 
 function validatePhone(phone: string): string | null {
   const cleaned = phone.replace(/[\s\-\(\)]/g, "");
@@ -66,7 +67,7 @@ export async function POST(req: NextRequest) {
 
     const hashed = await bcrypt.hash(password, 12);
     await User.create({
-      name,
+      name: sanitizeText(name),
       email: email.toLowerCase(),
       password: hashed,
       role: "seeker",

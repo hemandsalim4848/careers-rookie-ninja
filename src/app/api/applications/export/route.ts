@@ -5,6 +5,7 @@ import { connectDB } from '@/lib/mongodb'
 import Application from '@/models/Application'
 import Job from '@/models/Job'
 import User from '@/models/User'
+import { isValidObjectId } from 'mongoose'
 import { getResumeTypeFromUrl } from '@/lib/resume'
 
 export const dynamic = 'force-dynamic'
@@ -20,15 +21,22 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const jobId = searchParams.get('jobId')
 
-  // Verify job ownership before exporting
-  if (jobId) {
-    const job = await Job.findById(jobId).lean()
-    if (!job || String((job as any).postedBy) !== session.user.id) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
+  // jobId is required — never expose all applications across HR accounts
+  if (!jobId) {
+    return NextResponse.json({ error: 'jobId is required.' }, { status: 400 })
   }
 
-  const query = jobId ? { job: jobId } : { }
+  if (!isValidObjectId(jobId)) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
+  // Verify job ownership before exporting
+  const job = await Job.findById(jobId).lean()
+  if (!job || String((job as any).postedBy) !== session.user.id) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  const query = { job: jobId }
   const applications = await Application.find(query)
     .populate('seeker', 'name email')
     .populate('job', 'title department minimumScore')
@@ -65,11 +73,14 @@ const rows = applications.map((a: any) => ({
   'Resume Type':      getResumeTypeFromUrl(a.resumeUrl),
 }))
 
+  const sanitizeCell = (v: string) =>
+    /^[=+\-@\t\r]/.test(v) ? `'${v}` : v
+
   const headers = Object.keys(rows[0])
   const csv = [
     headers.join(','),
     ...rows.map(row =>
-      headers.map(h => `"${String((row as any)[h]).replace(/"/g, '""')}"`).join(',')
+      headers.map(h => `"${sanitizeCell(String((row as any)[h])).replace(/"/g, '""')}"`).join(',')
     ),
   ].join('\n')
 

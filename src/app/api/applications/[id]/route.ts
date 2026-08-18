@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { connectDB } from '@/lib/mongodb'
 import Application from '@/models/Application'
 import Job from '@/models/Job'
+import { isValidObjectId } from 'mongoose'
 import { notifyApplicant } from '@/lib/mailer'
 
 async function getApplicationOwnedByHR(applicationId: string, hrUserId: string) {
@@ -19,8 +20,18 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  if (!isValidObjectId(params.id)) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
   await connectDB()
-  const { status } = await req.json()
+  let body: any
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 })
+  }
+  const { status } = body
 
   const VALID_STATUSES = ['pending', 'shortlisted', 'hired', 'rejected']
   if (!status || !VALID_STATUSES.includes(status)) {
@@ -50,6 +61,10 @@ export async function DELETE(_: NextRequest, { params }: { params: { id: string 
   const session = await getServerSession(authOptions)
   if (!session || session.user.role !== 'hr') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  if (!isValidObjectId(params.id)) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
   await connectDB()

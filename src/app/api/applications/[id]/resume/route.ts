@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { connectDB } from '@/lib/mongodb'
 import Application from '@/models/Application'
+import { isValidObjectId } from 'mongoose'
 import { getResumeMime, getResumeTypeFromUrl } from '@/lib/resume'
 
 export async function GET(
@@ -14,10 +15,19 @@ export async function GET(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  if (!isValidObjectId(params.id)) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
   await connectDB()
-  const application = await Application.findById(params.id).select('resumeUrl').lean()
+  const application = await Application.findById(params.id).populate('job').lean()
 
   if (!application || !(application as any).resumeUrl) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
+  // Verify the application belongs to a job posted by this HR
+  if (String((application as any).job?.postedBy) !== session.user.id) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 

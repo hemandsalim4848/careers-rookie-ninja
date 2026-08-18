@@ -20,6 +20,19 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
   if (!job && isValidObjectId(params.id)) job = await Job.findById(params.id).lean()
 
   if (!job) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  // Non-open jobs are only visible to the HR who posted them
+  if ((job as any).status !== 'open') {
+    const session = await getServerSession(authOptions)
+    if (
+      !session ||
+      session.user.role !== 'hr' ||
+      String((job as any).postedBy) !== session.user.id
+    ) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
+  }
+
   return NextResponse.json(job, {
     headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' },
   })
@@ -32,12 +45,21 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 
   await connectDB()
-  const body = await req.json()
+  let body: any
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 })
+  }
 
   // Find by slug or ID
   let job = await Job.findOne({ slug: params.id })
   if (!job && isValidObjectId(params.id)) job = await Job.findById(params.id)
   if (!job) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  if (String(job.postedBy) !== session.user.id) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
 
   const update: Record<string, unknown> = {}
 
@@ -93,6 +115,10 @@ export async function DELETE(_: NextRequest, { params }: { params: { id: string 
   let job = await Job.findOne({ slug: params.id })
   if (!job && isValidObjectId(params.id)) job = await Job.findById(params.id)
   if (!job) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  if (String(job.postedBy) !== session.user.id) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
 
   await Job.findByIdAndDelete(job._id)
   return NextResponse.json({ success: true })
