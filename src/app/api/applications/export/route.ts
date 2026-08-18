@@ -20,7 +20,15 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const jobId = searchParams.get('jobId')
 
-  const query = jobId ? { job: jobId } : {}
+  // Verify job ownership before exporting
+  if (jobId) {
+    const job = await Job.findById(jobId).lean()
+    if (!job || String((job as any).postedBy) !== session.user.id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+  }
+
+  const query = jobId ? { job: jobId } : { }
   const applications = await Application.find(query)
     .populate('seeker', 'name email')
     .populate('job', 'title department minimumScore')

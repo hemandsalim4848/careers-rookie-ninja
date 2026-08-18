@@ -27,7 +27,13 @@ export async function GET(req: NextRequest) {
 
   if (role === 'hr') {
     const jobId = searchParams.get('jobId')
-    if (jobId) query.job = jobId
+    if (jobId) {
+      const job = await Job.findById(jobId).lean()
+      if (!job || String((job as any).postedBy) !== session.user.id) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
+      query.job = jobId
+    }
   } else {
     query.seeker = id
   }
@@ -104,6 +110,19 @@ export async function POST(req: NextRequest) {
     const scored = processQuestionnaireAnswers(questionnaire, body.questionnaireAnswers)
     if ('error' in scored) {
       return NextResponse.json({ error: scored.error }, { status: 400 })
+    }
+
+    // Validate resumeUrl origin against R2 public domain to prevent SSRF
+    if (body.resumeUrl) {
+      try {
+        const supplied = new URL(body.resumeUrl)
+        const allowed  = new URL(process.env.R2_PUBLIC_URL!)
+        if (supplied.origin !== allowed.origin) {
+          return NextResponse.json({ error: 'Invalid resume URL.' }, { status: 400 })
+        }
+      } catch {
+        return NextResponse.json({ error: 'Invalid resume URL.' }, { status: 400 })
+      }
     }
 
     const application = await Application.create({
