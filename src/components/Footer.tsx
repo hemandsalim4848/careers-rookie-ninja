@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import styles from './Footer.module.css'
 
 export default function Footer() {
@@ -6,7 +7,9 @@ export default function Footer() {
     <footer className={styles.footer}>
       <div className={styles.inner}>
         <div className={styles.brand}>
-          <div className={styles.logoMark}>RN</div>
+          <Link href="/">
+            <Image src="/logo.png" alt="Rookie Ninja" width={147} height={43} style={{ filter: "invert(1)" }} />
+          </Link>
           <p className={styles.tagline}>
             Build the future with Rookie Ninja.
           </p>
