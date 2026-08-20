@@ -165,7 +165,7 @@ export async function POST(req: NextRequest) {
     notifyHR({
       applicantName:  session.user?.name ?? 'Someone',
       applicantEmail: session.user?.email ?? '',
-      jobId:          body.job,
+      jobId:          (job as any)._id.toString(),
     }).catch(console.error)
 
     return NextResponse.json(application, { status: 201 })
