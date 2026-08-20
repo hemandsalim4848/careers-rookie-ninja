@@ -77,10 +77,7 @@ export default function Navbar() {
             alt="rookie ninja logo - Adept. Agile. Awesome."
             width={158}
             height={46}
-            // className={styles.logoImg}
-            style={{
-              filter: "invert(1)",
-            }}
+            style={{ filter: "invert(1)" }}
             priority
           />
           {/* <span className={styles.logoBadge}>Careers</span> */}

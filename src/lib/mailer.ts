@@ -46,6 +46,34 @@ export async function notifyHR({
   }
 }
 
+export async function notifyApplicantConfirmation({
+  to,
+  name,
+  jobTitle,
+}: {
+  to: string
+  name: string
+  jobTitle: string
+}) {
+  try {
+    await transporter.sendMail({
+      from:    `"Rookie Ninja Careers" <onboarding@resend.dev>`,
+      to,
+      subject: `Application received — ${jobTitle}`,
+      html: `
+        <p>Hi ${name},</p>
+        <p>We've received your application for <strong>${jobTitle}</strong> at Rookie Ninja.</p>
+        <p>Our team will review your profile and get back to you soon.</p>
+        <p><a href="${SITE_URL}/dashboard/seeker">Track your application →</a></p>
+        <br/>
+        <p>— Rookie Ninja Careers Team</p>
+      `,
+    })
+  } catch (err: any) {
+    console.error('notifyApplicantConfirmation error:', err.message)
+  }
+}
+
 export async function notifyApplicant({
   to,
   name,
