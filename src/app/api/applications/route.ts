@@ -4,8 +4,9 @@ import { authOptions } from '@/lib/auth'
 import { connectDB } from '@/lib/mongodb'
 import Application from '@/models/Application'
 import Job from '@/models/Job'
+import User from '@/models/User'
 import { isValidObjectId } from 'mongoose'
-import { notifyHR } from '@/lib/mailer'
+import { notifyHR, notifyApplicantConfirmation } from '@/lib/mailer'
 import { rateLimiters, getIP } from '@/lib/ratelimit'
 import { sanitizeText } from '@/lib/sanitize'
 import { processQuestionnaireAnswers } from '@/lib/questionnaire'
@@ -162,10 +163,19 @@ export async function POST(req: NextRequest) {
       seeker:             seekerId,
     })
 
+    // Fetch seeker from DB to guarantee we have name and email
+    const seeker = await User.findById(seekerId).select('name email').lean() as any
+
     notifyHR({
-      applicantName:  session.user?.name ?? 'Someone',
-      applicantEmail: session.user?.email ?? '',
+      applicantName:  seeker?.name ?? 'Someone',
+      applicantEmail: seeker?.email ?? '',
       jobId:          (job as any)._id.toString(),
+    }).catch(console.error)
+
+    notifyApplicantConfirmation({
+      to:       seeker?.email ?? '',
+      name:     seeker?.name ?? 'there',
+      jobTitle: (job as any).title,
     }).catch(console.error)
 
     return NextResponse.json(application, { status: 201 })
