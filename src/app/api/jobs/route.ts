@@ -16,8 +16,9 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const status = searchParams.get('status')
 
+  let session = null
   if (status === 'all') {
-    const session = await getServerSession(authOptions)
+    session = await getServerSession(authOptions)
     if (!session || session.user.role !== 'hr') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -25,15 +26,25 @@ export async function GET(req: NextRequest) {
 
   await connectDB()
 
-  let query: Record<string, any>
-  if (status === 'all') {
-    const session = await getServerSession(authOptions)
-    query = { postedBy: session!.user.id }
-  } else {
-    query = { status: 'open' }
-  }
+  const query: Record<string, any> = status === 'all'
+    ? { postedBy: session!.user.id }
+    : { status: 'open' }
 
-  const jobs = await Job.find(query).sort({ createdAt: -1 }).lean()
+  const page  = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10))
+  const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') ?? '50', 10)))
+  const skip  = (page - 1) * limit
+
+  // Exclude heavy fields from the listing — fetched individually on the detail page
+  const projection = status === 'all'
+    ? undefined
+    : { description: 0, questionnaire: 0, responsibilities: 0, niceToHave: 0 }
+
+  const jobs = await Job.find(query, projection)
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
+    .lean()
+
   return NextResponse.json(jobs, {
     headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' },
   })

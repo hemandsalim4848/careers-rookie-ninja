@@ -82,7 +82,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (body.niceToHave !== undefined) {
     update.niceToHave = body.niceToHave.map((r: string) => sanitizeText(r))
   }
-  if (body.status !== undefined) update.status = body.status
+  if (body.status !== undefined) {
+    if (!['open', 'closed'].includes(body.status)) {
+      return NextResponse.json({ error: 'Invalid status value.' }, { status: 400 })
+    }
+    update.status = body.status
+  }
   if (body.questionnaire !== undefined) {
     update.questionnaire = sanitizeQuestionnaire(body.questionnaire)
   }

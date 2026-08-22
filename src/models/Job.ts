@@ -90,6 +90,4 @@ JobSchema.index({ createdAt: -1 })
 // Text search index — for title/description keyword search
 JobSchema.index({ title: 'text', description: 'text' })
 
-// Recompile on hot reload so new paths (questionnaire, minimumScore) are not dropped by a cached schema
-delete (mongoose as any).models.Job
-export default model<IJob>('Job', JobSchema)
+export default (mongoose.models.Job as mongoose.Model<IJob>) || model<IJob>('Job', JobSchema)

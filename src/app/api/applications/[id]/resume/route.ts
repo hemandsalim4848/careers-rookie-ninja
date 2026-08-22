@@ -32,6 +32,18 @@ export async function GET(
   }
 
   const resumeUrl = (application as any).resumeUrl as string
+
+  // Re-validate origin at proxy time to prevent SSRF from stale DB records
+  try {
+    const supplied = new URL(resumeUrl)
+    const allowed  = new URL(process.env.R2_PUBLIC_URL!)
+    if (supplied.origin !== allowed.origin) {
+      return NextResponse.json({ error: 'Invalid resume URL.' }, { status: 400 })
+    }
+  } catch {
+    return NextResponse.json({ error: 'Invalid resume URL.' }, { status: 400 })
+  }
+
   const resumeType = getResumeTypeFromUrl(resumeUrl)
   const forceDownload =
     req.nextUrl.searchParams.get('download') === '1' ||

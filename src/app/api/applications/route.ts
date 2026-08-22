@@ -26,6 +26,10 @@ export async function GET(req: NextRequest) {
 
   let query: Record<string, any> = {}
 
+  const page  = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10))
+  const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') ?? '50', 10)))
+  const skip  = (page - 1) * limit
+
   if (role === 'hr') {
     const jobId = searchParams.get('jobId')
     if (jobId) {
@@ -50,6 +54,8 @@ export async function GET(req: NextRequest) {
     .populate('job', 'title department location type questionnaire minimumScore')
     .populate('seeker', 'name email')
     .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
     .lean()
 
   if (role === 'hr') {

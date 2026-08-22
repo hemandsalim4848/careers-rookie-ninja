@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, models, model } from 'mongoose'
+import mongoose, { Schema, Document, models, model, Model } from 'mongoose'
 
 export interface IQuestionnaireAnswer {
   questionId: string
@@ -71,6 +71,6 @@ const ApplicationSchema = new Schema<IApplication>(
 )
 
 ApplicationSchema.index({ job: 1, seeker: 1, createdAt: -1 })
+ApplicationSchema.index({ seeker: 1, createdAt: -1 })
 
-delete (mongoose as any).models.Application
-export default model<IApplication>('Application', ApplicationSchema)
+export default models.Application as mongoose.Model<IApplication> || model<IApplication>('Application', ApplicationSchema)

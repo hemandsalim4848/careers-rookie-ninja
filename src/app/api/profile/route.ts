@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { connectDB } from '@/lib/mongodb'
 import User from '@/models/User'
 import { sanitizeText } from '@/lib/sanitize'
+import { rateLimiters } from '@/lib/ratelimit'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -24,6 +25,9 @@ export async function GET() {
 export async function PATCH(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { success } = await rateLimiters.auth.limit(session.user.id)
+  if (!success) return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 })
 
   await connectDB()
   let body: any

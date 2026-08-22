@@ -36,12 +36,21 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
  callbacks: {
-  async jwt({ token, user }) {
+  async jwt({ token, user, trigger }) {
     if (user) {
       token.id    = user.id
       token.role  = (user as any).role
       token.name  = user.name
       token.email = user.email
+    }
+    // Re-validate role from DB on every token refresh (not on initial sign-in)
+    if (!user && token.id) {
+      await connectDB()
+      const dbUser = await User.findById(token.id).select('role name email').lean() as any
+      if (!dbUser) return { ...token, role: null } // account deleted — invalidate
+      token.role  = dbUser.role
+      token.name  = dbUser.name
+      token.email = dbUser.email
     }
     return token
   },

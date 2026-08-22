@@ -5,12 +5,16 @@ import { connectDB } from '@/lib/mongodb'
 import User from '@/models/User'
 import bcrypt from 'bcryptjs'
 import { sanitizeText } from '@/lib/sanitize'
+import { rateLimiters } from '@/lib/ratelimit'
 
 export async function PATCH(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session || session.user.role !== 'hr') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
+
+  const { success } = await rateLimiters.auth.limit(session.user.id)
+  if (!success) return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 })
 
   await connectDB()
   let body: any

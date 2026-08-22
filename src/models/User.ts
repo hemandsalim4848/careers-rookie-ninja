@@ -24,6 +24,4 @@ const UserSchema = new Schema<IUser>(
   { timestamps: true }
 )
 
-// Force re-compile — clears cached model
-delete (mongoose as any).models.User
-export default model<IUser>('User', UserSchema)
+export default models.User as mongoose.Model<IUser> || model<IUser>('User', UserSchema)
